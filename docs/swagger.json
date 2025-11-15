@@ -207,14 +207,39 @@
                     {
                         "type": "string",
                         "name": "companyId",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
-                        "name": "endDt",
-                        "in": "query",
-                        "required": true
+                        "name": "companyName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "createName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "description",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 10,
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "name",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "example": 1,
+                        "name": "page",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -224,8 +249,12 @@
                     {
                         "type": "string",
                         "name": "propertyId",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "propertyName",
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -234,9 +263,20 @@
                     },
                     {
                         "type": "string",
-                        "name": "startDt",
-                        "in": "query",
-                        "required": true
+                        "name": "propertygroupName",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "",
+                        "name": "sortField",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "example": "",
+                        "name": "sortOrder",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -278,6 +318,74 @@
                         "schema": {
                             "$ref": "#/definitions/request.CreateEvent"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/event/timeline": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Event"
+                ],
+                "parameters": [
+                    {
+                        "type": "string",
+                        "name": "companyId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "endDt",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "preloads",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "propertyId",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "propertygroupId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "startDt",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {

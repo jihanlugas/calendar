@@ -73,7 +73,7 @@ func (h Handler) Page(c echo.Context) error {
 // @Param req query request.TimelineEvent false "url query string"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /event [get]
+// @Router /event/timeline [get]
 func (h Handler) Timeline(c echo.Context) error {
 	var err error
 

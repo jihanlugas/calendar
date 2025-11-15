@@ -222,6 +222,60 @@ func dbUpView() {
 		panic(err)
 	}
 
+	err = conn.Migrator().DropView(model.VIEW_TRANSACTION)
+	if err != nil {
+		panic(err)
+	}
+	vTransaction := conn.Model(&model.Transaction{}).Unscoped().
+		Select("transactions.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = transactions.company_id").
+		Joins("left join users u1 on u1.id = transactions.create_by").
+		Joins("left join users u2 on u2.id = transactions.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_TRANSACTION, gorm.ViewOption{
+		Replace: true,
+		Query:   vTransaction,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = conn.Migrator().DropView(model.VIEW_TRANSACTIONEVENT)
+	if err != nil {
+		panic(err)
+	}
+	vTransactionevent := conn.Model(&model.Transactionevent{}).Unscoped().
+		Select("transactionevents.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = transactionevents.company_id").
+		Joins("left join users u1 on u1.id = transactionevents.create_by").
+		Joins("left join users u2 on u2.id = transactionevents.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_TRANSACTIONEVENT, gorm.ViewOption{
+		Replace: true,
+		Query:   vTransactionevent,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = conn.Migrator().DropView(model.VIEW_TRANSACTIONPRODUCT)
+	if err != nil {
+		panic(err)
+	}
+	vTransactionproduct := conn.Model(&model.Transactionproduct{}).Unscoped().
+		Select("transactionproducts.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = transactionproducts.company_id").
+		Joins("left join users u1 on u1.id = transactionproducts.create_by").
+		Joins("left join users u2 on u2.id = transactionproducts.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_TRANSACTIONPRODUCT, gorm.ViewOption{
+		Replace: true,
+		Query:   vTransactionproduct,
+	})
+	if err != nil {
+		panic(err)
+	}
+
 }
 
 func dbDown() {
