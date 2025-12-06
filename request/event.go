@@ -1,6 +1,10 @@
 package request
 
-import "time"
+import (
+	"time"
+
+	"github.com/jihanlugas/calendar/constant"
+)
 
 type PageEvent struct {
 	Paging
@@ -17,8 +21,8 @@ type PageEvent struct {
 }
 
 type TimelineEvent struct {
-	CompanyID       string    `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
-	PropertyID      string    `json:"propertyId" form:"propertyId" query:"propertyId" validate:"required"`
+	CompanyID       string    `json:"companyId" form:"companyId" query:"companyId" validate:""`
+	PropertyID      string    `json:"propertyId" form:"propertyId" query:"propertyId" validate:""`
 	PropertygroupID string    `json:"propertygroupId" form:"propertygroupId" query:"propertygroupId" validate:""`
 	StartDt         time.Time `json:"startDt" form:"startDt" query:"startDt" validate:"required"`
 	EndDt           time.Time `json:"endDt" form:"endDt" query:"endDt" validate:"required"`
@@ -26,19 +30,21 @@ type TimelineEvent struct {
 }
 
 type CreateEvent struct {
-	CompanyID       string    `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
-	PropertyID      string    `json:"propertyId" form:"propertyId" query:"propertyId" validate:"required"`
-	PropertygroupID string    `json:"propertygroupId" form:"propertygroupId" query:"propertygroupId" validate:"required"`
-	Name            string    `json:"name" form:"name" query:"name" validate:"required"`
-	Description     string    `json:"description" form:"description" query:"description" validate:""`
-	StartDt         time.Time `json:"startDt" form:"startDt" query:"startDt" validate:"required"`
-	EndDt           time.Time `json:"endDt" form:"endDt" query:"endDt" validate:"required"`
+	CompanyID       string               `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
+	PropertyID      string               `json:"propertyId" form:"propertyId" query:"propertyId" validate:"required"`
+	PropertygroupID string               `json:"propertygroupId" form:"propertygroupId" query:"propertygroupId" validate:"required"`
+	Name            string               `json:"name" form:"name" query:"name" validate:"required"`
+	Description     string               `json:"description" form:"description" query:"description" validate:""`
+	StartDt         time.Time            `json:"startDt" form:"startDt" query:"startDt" validate:"required"`
+	EndDt           time.Time            `json:"endDt" form:"endDt" query:"endDt" validate:"required"`
+	Status          constant.EventStatus `json:"status" form:"status" query:"status" validate:"required"`
 }
 
 type UpdateEvent struct {
-	PropertygroupID string    `json:"propertygroupId" form:"propertygroupId" query:"propertygroupId" validate:"required"`
-	Name            string    `json:"name" form:"name" query:"name" validate:"required"`
-	Description     string    `json:"description" form:"description" query:"description" validate:""`
-	StartDt         time.Time `json:"startDt" form:"startDt" query:"startDt" validate:"required"`
-	EndDt           time.Time `json:"endDt" form:"endDt" query:"endDt" validate:"required"`
+	PropertygroupID string               `json:"propertygroupId" form:"propertygroupId" query:"propertygroupId" validate:"required"`
+	Name            string               `json:"name" form:"name" query:"name" validate:"required"`
+	Description     string               `json:"description" form:"description" query:"description" validate:""`
+	StartDt         time.Time            `json:"startDt" form:"startDt" query:"startDt" validate:"required"`
+	EndDt           time.Time            `json:"endDt" form:"endDt" query:"endDt" validate:"required"`
+	Status          constant.EventStatus `json:"status" form:"status" query:"status" validate:"required"`
 }

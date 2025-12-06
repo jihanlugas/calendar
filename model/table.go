@@ -1,8 +1,11 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"github.com/jihanlugas/calendar/constant"
+	"github.com/lib/pq"
+	"gorm.io/gorm"
 )
 
 type TimeUnit string
@@ -93,12 +96,29 @@ type Property struct {
 	Name        string         `gorm:"not null"`
 	Description string         `gorm:"not null"`
 	PhotoID     string         `gorm:"not null"`
-	Price       int64          `gorm:"not null"`
+	OpenTime    *time.Time     `gorm:"null"`
+	CloseTime   *time.Time     `gorm:"null"`
 	CreateBy    string         `gorm:"not null"`
 	CreateDt    time.Time      `gorm:"not null"`
 	UpdateBy    string         `gorm:"not null"`
 	UpdateDt    time.Time      `gorm:"not null"`
 	DeleteDt    gorm.DeletedAt `gorm:"null"`
+}
+
+type Propertyprice struct {
+	ID         string         `gorm:"primaryKey"`
+	CompanyID  string         `gorm:"not null"`
+	PropertyID string         `gorm:"not null"`
+	Priority   int            `gorm:"not null"`
+	Weekdays   pq.Int32Array  `gorm:"type:int[];not null"`
+	StartTime  *time.Time     `gorm:"null"`
+	EndTime    *time.Time     `gorm:"null"`
+	Price      int64          `gorm:"not null"`
+	CreateBy   string         `gorm:"not null"`
+	CreateDt   time.Time      `gorm:"not null"`
+	UpdateBy   string         `gorm:"not null"`
+	UpdateDt   time.Time      `gorm:"not null"`
+	DeleteDt   gorm.DeletedAt `gorm:"null"`
 }
 
 type Propertytimeline struct {
@@ -132,19 +152,21 @@ type Propertygroup struct {
 }
 
 type Event struct {
-	ID              string         `gorm:"primaryKey"`
-	CompanyID       string         `gorm:"not null"`
-	PropertyID      string         `gorm:"not null"`
-	PropertygroupID string         `gorm:"not null"`
-	Name            string         `gorm:"not null"`
-	Description     string         `gorm:"not null"`
-	StartDt         time.Time      `gorm:"not null"`
-	EndDt           time.Time      `gorm:"not null"`
-	CreateBy        string         `gorm:"not null"`
-	CreateDt        time.Time      `gorm:"not null"`
-	UpdateBy        string         `gorm:"not null"`
-	UpdateDt        time.Time      `gorm:"not null"`
-	DeleteDt        gorm.DeletedAt `gorm:"null"`
+	ID              string               `gorm:"primaryKey" json:"id"`
+	CompanyID       string               `gorm:"not null" json:"company_id"`
+	PropertyID      string               `gorm:"not null" json:"property_id"`
+	PropertygroupID string               `gorm:"not null" json:"propertygroup_id"`
+	Name            string               `gorm:"not null" json:"name"`
+	Description     string               `gorm:"not null" json:"description"`
+	StartDt         time.Time            `gorm:"not null" json:"start_dt"`
+	EndDt           time.Time            `gorm:"not null" json:"end_dt"`
+	Status          constant.EventStatus `gorm:"not null" json:"status"`
+	Price           int64                `gorm:"not null" json:"price"`
+	CreateBy        string               `gorm:"not null" json:"create_by"`
+	CreateDt        time.Time            `gorm:"not null" json:"create_dt"`
+	UpdateBy        string               `gorm:"not null" json:"update_by"`
+	UpdateDt        time.Time            `gorm:"not null" json:"update_dt"`
+	DeleteDt        gorm.DeletedAt       `gorm:"null" json:"delete_dt"`
 }
 
 type Product struct {

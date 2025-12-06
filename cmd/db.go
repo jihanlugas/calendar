@@ -2,20 +2,25 @@ package cmd
 
 import (
 	"fmt"
+	"log"
+	"time"
+
+	"github.com/jihanlugas/calendar/app/propertyprice"
 	"github.com/jihanlugas/calendar/constant"
 	"github.com/jihanlugas/calendar/cryption"
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/model"
+	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/utils"
+	"github.com/lib/pq"
 	"gorm.io/gorm"
-	"log"
-	"time"
 )
 
 func dbUp() {
 	log.Println("Running database migrations...")
 	dbUpTable()
 	dbUpView()
+	dbUpListener()
 }
 
 func dbUpTable() {
@@ -37,6 +42,10 @@ func dbUpTable() {
 		panic(err)
 	}
 	err = conn.Migrator().AutoMigrate(&model.Property{})
+	if err != nil {
+		panic(err)
+	}
+	err = conn.Migrator().AutoMigrate(&model.Propertyprice{})
 	if err != nil {
 		panic(err)
 	}
@@ -143,6 +152,25 @@ func dbUpView() {
 	err = conn.Migrator().CreateView(model.VIEW_PROPERTY, gorm.ViewOption{
 		Replace: true,
 		Query:   vProperty,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = conn.Migrator().DropView(model.VIEW_PROPERTYPRICE)
+	if err != nil {
+		panic(err)
+	}
+	vPropertyprice := conn.Model(&model.Propertyprice{}).Unscoped().
+		Select("propertyprices.*, companies.name as company_name, properties.name as property_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = propertyprices.company_id").
+		Joins("left join properties properties on properties.id = propertyprices.property_id").
+		Joins("left join users u1 on u1.id = propertyprices.create_by").
+		Joins("left join users u2 on u2.id = propertyprices.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_PROPERTYPRICE, gorm.ViewOption{
+		Replace: true,
+		Query:   vPropertyprice,
 	})
 	if err != nil {
 		panic(err)
@@ -278,6 +306,71 @@ func dbUpView() {
 
 }
 
+func dbUpListener() {
+	conn, closeConn := db.GetConnection()
+	defer closeConn()
+
+	createFunction := `
+		CREATE OR REPLACE FUNCTION notify_event_changes()
+		RETURNS TRIGGER AS $$
+		DECLARE
+			payload JSON;
+		BEGIN
+			IF TG_OP = 'INSERT' THEN
+				payload := json_build_object(
+					'operation', TG_OP,
+					'new', row_to_json(NEW)
+				);
+		
+			ELSIF TG_OP = 'UPDATE' THEN
+				payload := json_build_object(
+					'operation', TG_OP,
+					'old', row_to_json(OLD),
+					'new', row_to_json(NEW)
+				);
+		
+			ELSIF TG_OP = 'DELETE' THEN
+				payload := json_build_object(
+					'operation', TG_OP,
+					'old', row_to_json(OLD)
+				);
+			END IF;
+		
+			PERFORM pg_notify('event_changes', payload::text);
+			RETURN NEW;
+		END;
+		$$ LANGUAGE plpgsql;
+		`
+	if err := conn.Exec(createFunction).Error; err != nil {
+		panic("failed to create notify_event_changes FUNCTION: " + err.Error())
+	}
+
+	dropTrigger := `
+		DO $$
+		BEGIN
+			IF EXISTS (
+				SELECT 1 FROM pg_trigger WHERE tgname = 'event_notify_trigger'
+			) THEN
+				DROP TRIGGER event_notify_trigger ON events;
+			END IF;
+		END$$;
+		`
+	if err := conn.Exec(dropTrigger).Error; err != nil {
+		panic("failed to drop existing trigger: " + err.Error())
+	}
+
+	createTrigger := `
+		CREATE TRIGGER event_notify_trigger
+		AFTER INSERT OR UPDATE OR DELETE ON events
+		FOR EACH ROW EXECUTE FUNCTION notify_event_changes();
+		`
+	if err := conn.Exec(createTrigger).Error; err != nil {
+		panic("failed to create event_notify_trigger: " + err.Error())
+	}
+
+	fmt.Println("Listener setup for table events completed.")
+}
+
 func dbDown() {
 	log.Println("Reverting database migrations...")
 	var err error
@@ -311,6 +404,8 @@ func dbSeed() {
 
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
+
+	propertypriceRepo := propertyprice.NewRepository()
 
 	tx := conn.Begin()
 
@@ -388,13 +483,16 @@ func dbSeed() {
 	}
 	tx.Create(&usercompanies)
 
+	openTime, _ := time.Parse(constant.FormatTimeLayout, "01:00")  // jam 08 WIB
+	closeTime, _ := time.Parse(constant.FormatTimeLayout, "16:00") // jam 23 WIB
 	properties := []model.Property{
 		{
 			ID:          property1ID,
 			Name:        "Badminton",
 			Description: "Demo Property Generated",
 			CompanyID:   companyID,
-			Price:       50000,
+			OpenTime:    &openTime,
+			CloseTime:   &closeTime,
 			CreateBy:    adminID,
 			UpdateBy:    adminID,
 		},
@@ -403,7 +501,8 @@ func dbSeed() {
 			Name:        "Futsal",
 			Description: "Demo Property Generated",
 			CompanyID:   companyID,
-			Price:       100000,
+			OpenTime:    &openTime,
+			CloseTime:   &closeTime,
 			CreateBy:    adminID,
 			UpdateBy:    adminID,
 		},
@@ -438,6 +537,56 @@ func dbSeed() {
 	}
 	tx.Create(&propertytimelines)
 
+	startTime, _ := time.Parse(constant.FormatTimeLayout, "10:00") // jam 17 WIB
+	endTime, _ := time.Parse(constant.FormatTimeLayout, "16:00")   // jam 23 WIB
+	propertyprices := []model.Propertyprice{
+		{
+			CompanyID:  companyID,
+			PropertyID: property1ID,
+			Priority:   1,
+			Weekdays:   pq.Int32Array{0, 1, 2, 3, 4, 5, 6},
+			StartTime:  nil,
+			EndTime:    nil,
+			Price:      10,
+			CreateBy:   adminID,
+			UpdateBy:   adminID,
+		},
+		{
+			CompanyID:  companyID,
+			PropertyID: property1ID,
+			Priority:   2,
+			Weekdays:   pq.Int32Array{0, 6},
+			StartTime:  &startTime,
+			EndTime:    &endTime,
+			Price:      100,
+			CreateBy:   adminID,
+			UpdateBy:   adminID,
+		},
+		{
+			CompanyID:  companyID,
+			PropertyID: property2ID,
+			Priority:   1,
+			Weekdays:   pq.Int32Array{0, 1, 2, 3, 4, 5, 6},
+			StartTime:  nil,
+			EndTime:    nil,
+			Price:      1000,
+			CreateBy:   adminID,
+			UpdateBy:   adminID,
+		},
+		{
+			CompanyID:  companyID,
+			PropertyID: property2ID,
+			Priority:   2,
+			Weekdays:   pq.Int32Array{0, 6},
+			StartTime:  &startTime,
+			EndTime:    &endTime,
+			Price:      10000,
+			CreateBy:   adminID,
+			UpdateBy:   adminID,
+		},
+	}
+	tx.Create(&propertyprices)
+
 	propertygroups := []model.Propertygroup{}
 	for i, property := range properties {
 		for j := 0; j < (3 + i); j++ {
@@ -464,6 +613,31 @@ func dbSeed() {
 
 		for j := 0; j < 20; j++ {
 			endDt := startDt.Add(time.Hour * time.Duration(utils.GetRandomNumber(1, 5)))
+
+			for startDt.Hour() < 8 || endDt.Hour() > 23 || endDt.Hour() < 8 {
+				addDuration := time.Hour * time.Duration(utils.GetRandomNumber(1, 3))
+				startDt = startDt.Add(addDuration)
+				endDt = endDt.Add(addDuration)
+			}
+
+			status := constant.EVENT_STATUS_CONFIRM
+			rand := utils.GetRandomNumber(1, 30) % 2
+			switch rand {
+			case 0:
+				status = constant.EVENT_STATUS_HOLD
+			case 1:
+				status = constant.EVENT_STATUS_CONFIRM
+			}
+
+			getPriceReq := request.GetPrice{
+				PropertyID: propertygroup.PropertyID,
+				StartDt:    startDt,
+				EndDt:      endDt,
+			}
+			price, err := propertypriceRepo.GetPrice(tx, getPriceReq)
+			if err != nil {
+				fmt.Println("ERR => ", err)
+			}
 			event := model.Event{
 				PropertyID:      propertygroup.PropertyID,
 				PropertygroupID: propertygroup.ID,
@@ -472,6 +646,8 @@ func dbSeed() {
 				Description:     fmt.Sprintf("Generated Data Event %d", j+1),
 				StartDt:         startDt,
 				EndDt:           endDt,
+				Status:          status,
+				Price:           price,
 				CreateBy:        adminID,
 				UpdateBy:        adminID,
 			}

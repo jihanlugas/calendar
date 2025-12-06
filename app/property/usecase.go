@@ -3,7 +3,9 @@ package property
 import (
 	"errors"
 	"fmt"
+
 	"github.com/jihanlugas/calendar/app/propertygroup"
+	"github.com/jihanlugas/calendar/app/propertyprice"
 	"github.com/jihanlugas/calendar/app/propertytimeline"
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
@@ -19,12 +21,14 @@ type Usecase interface {
 	Create(loginUser jwt.UserLogin, req request.CreateProperty) error
 	Update(loginUser jwt.UserLogin, id string, req request.UpdateProperty) error
 	Delete(loginUser jwt.UserLogin, id string) error
+	GetPrice(req request.GetPrice) (price int64, err error)
 }
 
 type usecase struct {
 	repository                 Repository
 	repositoryPropertytimeline propertytimeline.Repository
 	repositoryPropertygroup    propertygroup.Repository
+	repositoryPropertyprice    propertyprice.Repository
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageProperty) (vProperties []model.PropertyView, count int64, err error) {
@@ -79,7 +83,6 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 		CompanyID:   req.CompanyID,
 		Name:        req.Name,
 		Description: req.Description,
-		Price:       req.Price,
 		CreateBy:    loginUser.UserID,
 		UpdateBy:    loginUser.UserID,
 	}
@@ -154,7 +157,6 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 
 	tProperty.Name = req.Name
 	tProperty.Description = req.Description
-	tProperty.Price = req.Price
 	tProperty.UpdateBy = loginUser.UserID
 	err = u.repository.Save(tx, tProperty)
 	if err != nil {
@@ -200,10 +202,24 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 	return err
 }
 
-func NewUsecase(repository Repository, repositoryPropertytimeline propertytimeline.Repository, repositoryPropertygroup propertygroup.Repository) Usecase {
+func (u usecase) GetPrice(req request.GetPrice) (price int64, err error) {
+
+	conn, closeConn := db.GetConnection()
+	defer closeConn()
+
+	price, err = u.repositoryPropertyprice.GetPrice(conn, req)
+	if err != nil {
+		return price, err
+	}
+	
+	return
+}
+
+func NewUsecase(repository Repository, repositoryPropertytimeline propertytimeline.Repository, repositoryPropertygroup propertygroup.Repository, repositoryPropertyprice propertyprice.Repository) Usecase {
 	return &usecase{
 		repository:                 repository,
 		repositoryPropertytimeline: repositoryPropertytimeline,
 		repositoryPropertygroup:    repositoryPropertygroup,
+		repositoryPropertyprice:    repositoryPropertyprice,
 	}
 }

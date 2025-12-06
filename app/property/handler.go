@@ -1,13 +1,14 @@
 package property
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"strings"
 )
 
 type Handler struct {
@@ -211,4 +212,36 @@ func (h Handler) Delete(c echo.Context) error {
 	}
 
 	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+}
+
+// GetPrice
+// @Tags Property
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param req body request.GetPrice true "json req body"
+// @Success      200  {object}	response.Response
+// @Failure      500  {object}  response.Response
+// @Router /property/get-price [get]
+func (h Handler) GetPrice(c echo.Context) error {
+	var err error
+
+	req := new(request.GetPrice)
+	if err = c.Bind(req); err != nil {
+		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
+	}
+
+	utils.TrimWhitespace(req)
+
+	err = c.Validate(req)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, response.ErrorHandlerFailedValidation, err, response.ValidationError(err)).SendJSON(c)
+	}
+
+	price, err := h.usecase.GetPrice(*req)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
+	}
+
+	return response.Success(http.StatusOK, response.SuccessHandler, price).SendJSON(c)
 }

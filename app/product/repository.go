@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/utils"
 	"gorm.io/gorm"
 	"strings"
 )
@@ -30,9 +29,7 @@ func (r repository) Name() string {
 
 func (r repository) GetTableById(conn *gorm.DB, id string, preloads ...string) (tProduct model.Product, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadProduct) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 
 	err = conn.Where("id = ? ", id).First(&tProduct).Error
@@ -41,9 +38,7 @@ func (r repository) GetTableById(conn *gorm.DB, id string, preloads ...string) (
 
 func (r repository) GetViewById(conn *gorm.DB, id string, preloads ...string) (vProduct model.ProductView, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadProduct) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 	err = conn.Where("id = ? ", id).First(&vProduct).Error
 	return vProduct, err
@@ -77,9 +72,9 @@ func (r repository) Page(conn *gorm.DB, req request.PageProduct) (vProducts []mo
 	query := conn.Model(&vProducts)
 
 	// preloads
-	preloads := strings.Split(req.Preloads, ",")
-	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadProduct) {
+	if req.Preloads != "" {
+		preloads := strings.Split(req.Preloads, ",")
+		for _, preload := range preloads {
 			query = query.Preload(preload)
 		}
 	}

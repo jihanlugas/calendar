@@ -2,11 +2,11 @@ package propertygroup
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/utils"
 	"gorm.io/gorm"
-	"strings"
 )
 
 type Repository interface {
@@ -72,9 +72,9 @@ func (r repository) Page(conn *gorm.DB, req request.PagePropertygroup) (vPropert
 	query := conn.Model(&vPropertygroups)
 
 	// preloads
-	preloads := strings.Split(req.Preloads, ",")
-	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadPropertygroup) {
+	if req.Preloads != "" {
+		preloads := strings.Split(req.Preloads, ",")
+		for _, preload := range preloads {
 			query = query.Preload(preload)
 		}
 	}

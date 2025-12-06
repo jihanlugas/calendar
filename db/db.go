@@ -3,13 +3,14 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/jihanlugas/calendar/config"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"log"
-	"os"
-	"time"
 )
 
 type DB struct {
@@ -29,7 +30,15 @@ func closeConn(conn *sql.DB) CloseConn {
 	}
 }
 
-func NewDatabase(username, password, host, port, name string) (*gorm.DB, error) {
+var Dns = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
+	config.Database.Host,
+	config.Database.Username,
+	config.Database.Password,
+	config.Database.Name,
+	config.Database.Port,
+)
+
+func NewDatabase() (*gorm.DB, error) {
 	logLevel := logger.Silent
 	if config.Debug {
 		logLevel = logger.Info
@@ -44,9 +53,7 @@ func NewDatabase(username, password, host, port, name string) (*gorm.DB, error) 
 		},
 	)
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
-		host, username, password, name, port)
-	client, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+	client, err := gorm.Open(postgres.Open(Dns), &gorm.Config{
 		Logger: newLogger,
 	})
 
@@ -55,13 +62,7 @@ func NewDatabase(username, password, host, port, name string) (*gorm.DB, error) 
 
 func GetConnection() (*gorm.DB, CloseConn) {
 	var err error
-	db, err := NewDatabase(
-		config.Database.Username,
-		config.Database.Password,
-		config.Database.Host,
-		config.Database.Port,
-		config.Database.Name,
-	)
+	db, err := NewDatabase()
 
 	if err != nil {
 		panic(err)

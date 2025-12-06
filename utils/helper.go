@@ -2,10 +2,11 @@ package utils
 
 import (
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/jihanlugas/calendar/config"
 	"math/rand"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/jihanlugas/calendar/config"
 )
 
 func GetUniqueID() string {
@@ -28,4 +29,13 @@ func GetRandomNumber(min, max int) int {
 
 func GetPhotoUrlById(photoID string) string {
 	return fmt.Sprintf("%s/photo/%s", config.Server.BaseUrl, photoID)
+}
+
+func StringContains(arr []string, target string) bool {
+	for _, v := range arr {
+		if v == target {
+			return true
+		}
+	}
+	return false
 }

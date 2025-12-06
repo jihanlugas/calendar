@@ -14,7 +14,6 @@ type CreateProperty struct {
 	CompanyID      string                           `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
 	Name           string                           `json:"name" form:"name" query:"name" validate:"required"`
 	Description    string                           `json:"description" form:"description" query:"description" validate:""`
-	Price          int64                            `json:"price" form:"price" query:"price" validate:"required"`
 	Propertygroups []CreatePropertyPropertytimeline `json:"propertygroups" form:"propertygroups" query:"propertygroups" validate:"required"`
 	//CreatePropertytimeline
 }
@@ -22,7 +21,6 @@ type CreateProperty struct {
 type UpdateProperty struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required"`
 	Description string `json:"description" form:"description" query:"description" validate:""`
-	Price       int64  `json:"price" form:"price" query:"price" validate:"required"`
 }
 
 type CreatePropertyPropertytimeline struct {

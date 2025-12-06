@@ -3,30 +3,42 @@ package router
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/jihanlugas/calendar/app/auth"
 	"github.com/jihanlugas/calendar/app/company"
 	"github.com/jihanlugas/calendar/app/event"
+	"github.com/jihanlugas/calendar/app/listener"
 	"github.com/jihanlugas/calendar/app/photo"
 	"github.com/jihanlugas/calendar/app/product"
 	"github.com/jihanlugas/calendar/app/property"
 	"github.com/jihanlugas/calendar/app/propertygroup"
+	"github.com/jihanlugas/calendar/app/propertyprice"
 	"github.com/jihanlugas/calendar/app/propertytimeline"
 	"github.com/jihanlugas/calendar/app/user"
 	"github.com/jihanlugas/calendar/app/usercompany"
+	"github.com/jihanlugas/calendar/app/websocket"
 	"github.com/jihanlugas/calendar/config"
 	"github.com/jihanlugas/calendar/constant"
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/response"
+	"github.com/jihanlugas/calendar/ws"
 	"github.com/labstack/echo/v4"
 	echoSwagger "github.com/swaggo/echo-swagger"
 
-	_ "github.com/jihanlugas/calendar/docs"
 	"net/http"
+
+	_ "github.com/jihanlugas/calendar/docs"
 )
 
 func Init() *echo.Echo {
+	router := websiteRouter()
+
+	hubManager := ws.NewHubManager(router.Validator)
+
+	listener.StartEventListener(hubManager)
+
 	// repositories
 	photoRepository := photo.NewRepository()
 	userRepository := user.NewRepository()
@@ -36,6 +48,7 @@ func Init() *echo.Echo {
 	propertyRepository := property.NewRepository()
 	propertytimelineRepository := propertytimeline.NewRepository()
 	propertygroupRepository := propertygroup.NewRepository()
+	propertypriceRepository := propertyprice.NewRepository()
 	eventRepository := event.NewRepository()
 
 	// usecases
@@ -44,7 +57,7 @@ func Init() *echo.Echo {
 	userUsecase := user.NewUsecase(userRepository, usercompanyRepository)
 	companyUsecase := company.NewUsecase(companyRepository, usercompanyRepository)
 	productUsecase := product.NewUsecase(productRepository)
-	propertyUsecase := property.NewUsecase(propertyRepository, propertytimelineRepository, propertygroupRepository)
+	propertyUsecase := property.NewUsecase(propertyRepository, propertytimelineRepository, propertygroupRepository, propertypriceRepository)
 	propertygroupUsecase := propertygroup.NewUsecase(propertygroupRepository)
 	eventUsecase := event.NewUsecase(eventRepository)
 
@@ -57,8 +70,7 @@ func Init() *echo.Echo {
 	productHandler := product.NewHandler(productUsecase)
 	propertygroupHandler := propertygroup.NewHandler(propertygroupUsecase)
 	eventHandler := event.NewHandler(eventUsecase)
-
-	router := websiteRouter()
+	websocketHandler := websocket.NewHandler(hubManager)
 
 	if config.Debug {
 		router.GET("/", func(c echo.Context) error {
@@ -93,6 +105,7 @@ func Init() *echo.Echo {
 	routerProperty.PUT("/:id", propertyHandler.Update)
 	routerProperty.GET("/:id", propertyHandler.GetById)
 	routerProperty.DELETE("/:id", propertyHandler.Delete)
+	routerProperty.GET("/get-price", propertyHandler.GetPrice)
 
 	routerProduct := router.Group("/product", checkTokenMiddleware)
 	routerProduct.GET("", productHandler.Page)
@@ -115,6 +128,9 @@ func Init() *echo.Echo {
 	routerEvent.PUT("/:id", eventHandler.Update)
 	routerEvent.GET("/:id", eventHandler.GetById)
 	routerEvent.DELETE("/:id", eventHandler.Delete)
+
+	routerWebsocket := router.Group("/ws")
+	routerWebsocket.GET("", websocketHandler.Serve)
 
 	return router
 

@@ -3,11 +3,12 @@ package config
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"github.com/joho/godotenv"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 type database struct {
@@ -38,6 +39,8 @@ var (
 	PhotoincRunningLimit         int64
 	PhotoUploadMaxSizeByte       int64
 	PhotoUploadAllowedExtensions []string
+
+	WsAllowedOrigins []string
 )
 
 func init() {
@@ -103,6 +106,18 @@ func init() {
 		panic(err)
 	}
 
-	PhotoUploadAllowedExtensions = strings.Split(os.Getenv("PHOTO_UPLOAD_ALLOWED_EXTENSIONS"), ",")
+	photoUploadAllowedExtensions := os.Getenv("PHOTO_UPLOAD_ALLOWED_EXTENSIONS")
+	if photoUploadAllowedExtensions == "" {
+		PhotoUploadAllowedExtensions = []string{}
+	} else {
+		PhotoUploadAllowedExtensions = strings.Split(photoUploadAllowedExtensions, ",")
+	}
+
+	wsAllowedOrigins := os.Getenv("WS_ALLOWED_ORIGINS")
+	if wsAllowedOrigins == "" {
+		WsAllowedOrigins = []string{}
+	} else {
+		WsAllowedOrigins = strings.Split(wsAllowedOrigins, ",")
+	}
 
 }

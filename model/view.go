@@ -1,8 +1,11 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"github.com/jihanlugas/calendar/constant"
+	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type UserView struct {
@@ -99,7 +102,6 @@ type PropertyView struct {
 	Description string         `json:"description"`
 	PhotoID     string         `json:"photoId"`
 	PhotoUrl    string         `json:"photoUrl"`
-	Price       int64          `json:"price"`
 	CreateBy    string         `json:"createBy"`
 	CreateDt    time.Time      `json:"createDt"`
 	UpdateBy    string         `json:"updateBy"`
@@ -117,6 +119,33 @@ type PropertyView struct {
 
 func (PropertyView) TableName() string {
 	return VIEW_PROPERTY
+}
+
+type PropertypriceView struct {
+	ID           string         `json:"id"`
+	CompanyID    string         `json:"companyId"`
+	PropertyID   string         `json:"propertyId"`
+	Priority     int            `json:"priority"`
+	Weekdays     datatypes.JSON `json:"weekdays"`
+	StartTime    *time.Time     `json:"startTime"`
+	EndTime      *time.Time     `json:"endTime"`
+	Price        int64          `json:"price"`
+	CreateBy     string         `json:"createBy"`
+	CreateDt     time.Time      `json:"createDt"`
+	UpdateBy     string         `json:"updateBy"`
+	UpdateDt     time.Time      `json:"updateDt"`
+	DeleteDt     gorm.DeletedAt `json:"deleteDt"`
+	CompanyName  string         `json:"companyName"`
+	PropertyName string         `json:"propertyName"`
+	CreateName   string         `json:"createName"`
+	UpdateName   string         `json:"updateName"`
+
+	Company  *CompanyView  `json:"company,omitempty"`
+	Property *PropertyView `json:"property,omitempty"`
+}
+
+func (PropertypriceView) TableName() string {
+	return VIEW_PROPERTYPRICE
 }
 
 type PropertytimelineView struct {
@@ -160,7 +189,7 @@ type PropertygroupView struct {
 	UpdateName   string         `json:"updateName"`
 
 	Company  *CompanyView  `json:"company,omitempty"`
-	Property *PropertyView `json:"propertygroup,omitempty"`
+	Property *PropertyView `json:"property,omitempty"`
 	Events   []EventView   `json:"events,omitempty" gorm:"foreignKey:PropertygroupID"`
 }
 
@@ -169,28 +198,30 @@ func (PropertygroupView) TableName() string {
 }
 
 type EventView struct {
-	ID                string         `json:"id"`
-	CompanyID         string         `json:"companyId"`
-	PropertyID        string         `json:"propertyId"`
-	PropertygroupID   string         `json:"propertygroupId"`
-	Name              string         `json:"name"`
-	Description       string         `json:"description"`
-	StartDt           time.Time      `json:"startDt"`
-	EndDt             time.Time      `json:"endDt"`
-	CreateBy          string         `json:"createBy"`
-	CreateDt          time.Time      `json:"createDt"`
-	UpdateBy          string         `json:"updateBy"`
-	UpdateDt          time.Time      `json:"updateDt"`
-	DeleteDt          gorm.DeletedAt `json:"deleteDt"`
-	CompanyName       string         `json:"companyName"`
-	PropertyName      string         `json:"propertyName"`
-	PropertygroupName string         `json:"propertygroupName"`
-	CreateName        string         `json:"createName"`
-	UpdateName        string         `json:"updateName"`
+	ID                string               `json:"id"`
+	CompanyID         string               `json:"companyId"`
+	PropertyID        string               `json:"propertyId"`
+	PropertygroupID   string               `json:"propertygroupId"`
+	Name              string               `json:"name"`
+	Description       string               `json:"description"`
+	StartDt           time.Time            `json:"startDt"`
+	EndDt             time.Time            `json:"endDt"`
+	Status            constant.EventStatus `json:"status"`
+	Price             int64                `json:"price"`
+	CreateBy          string               `json:"createBy"`
+	CreateDt          time.Time            `json:"createDt"`
+	UpdateBy          string               `json:"updateBy"`
+	UpdateDt          time.Time            `json:"updateDt"`
+	DeleteDt          gorm.DeletedAt       `json:"deleteDt"`
+	CompanyName       string               `json:"companyName"`
+	PropertyName      string               `json:"propertyName"`
+	PropertygroupName string               `json:"propertygroupName"`
+	CreateName        string               `json:"createName"`
+	UpdateName        string               `json:"updateName"`
 
-	Company       *CompanyView       `json:"company,omitempty"`
-	Property      *PropertyView      `json:"propertygroup,omitempty"`
-	Propertygroup *PropertygroupView `json:"property,omitempty"`
+	//Company       *CompanyView       `json:"company,omitempty"`
+	//Property      *PropertyView      `json:"property,omitempty"`
+	//Propertygroup *PropertygroupView `json:"propertygroup,omitempty"`
 }
 
 func (EventView) TableName() string {
@@ -205,6 +236,8 @@ type ProductView struct {
 	Price       int64          `json:"price"`
 	PhotoID     string         `json:"photoId"`
 	PhotoUrl    string         `json:"photoUrl"`
+	OpenTime    *time.Time     `json:"openTime"`
+	CloseTime   *time.Time     `json:"closeTime"`
 	CreateBy    string         `json:"createBy"`
 	CreateDt    time.Time      `json:"createDt"`
 	UpdateBy    string         `json:"updateBy"`

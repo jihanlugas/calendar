@@ -2,11 +2,11 @@ package event
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/utils"
 	"gorm.io/gorm"
-	"strings"
 )
 
 type Repository interface {
@@ -39,9 +39,7 @@ func (r repository) GetTableById(conn *gorm.DB, id string, preloads ...string) (
 
 func (r repository) GetViewById(conn *gorm.DB, id string, preloads ...string) (vEvent model.EventView, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadEvent) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 	err = conn.Where("id = ? ", id).First(&vEvent).Error
 	return vEvent, err
@@ -75,9 +73,9 @@ func (r repository) Page(conn *gorm.DB, req request.PageEvent) (vEvents []model.
 	query := conn.Model(&vEvents)
 
 	// preloads
-	preloads := strings.Split(req.Preloads, ",")
-	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadEvent) {
+	if req.Preloads != "" {
+		preloads := strings.Split(req.Preloads, ",")
+		for _, preload := range preloads {
 			query = query.Preload(preload)
 		}
 	}
@@ -138,9 +136,9 @@ func (r repository) Timeline(conn *gorm.DB, req request.TimelineEvent) (vEvents 
 	query := conn.Model(&vEvents)
 
 	// preloads
-	preloads := strings.Split(req.Preloads, ",")
-	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadEvent) {
+	if req.Preloads != "" {
+		preloads := strings.Split(req.Preloads, ",")
+		for _, preload := range preloads {
 			query = query.Preload(preload)
 		}
 	}

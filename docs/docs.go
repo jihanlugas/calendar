@@ -363,8 +363,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "name": "companyId",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -380,8 +379,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "name": "propertyId",
-                        "in": "query",
-                        "required": true
+                        "in": "query"
                     },
                     {
                         "type": "string",
@@ -952,6 +950,49 @@ const docTemplate = `{
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/request.CreateProperty"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/property/get-price": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Property"
+                ],
+                "parameters": [
+                    {
+                        "description": "json req body",
+                        "name": "req",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.GetPrice"
                         }
                     }
                 ],
@@ -1683,6 +1724,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "constant.EventStatus": {
+            "type": "string",
+            "enum": [
+                "HOLD",
+                "CONFIRM"
+            ],
+            "x-enum-varnames": [
+                "EVENT_STATUS_HOLD",
+                "EVENT_STATUS_CONFIRM"
+            ]
+        },
         "request.ChangePassword": {
             "type": "object",
             "required": [
@@ -1713,7 +1765,8 @@ const docTemplate = `{
                 "name",
                 "propertyId",
                 "propertygroupId",
-                "startDt"
+                "startDt",
+                "status"
             ],
             "properties": {
                 "companyId": {
@@ -1736,6 +1789,9 @@ const docTemplate = `{
                 },
                 "startDt": {
                     "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/constant.EventStatus"
                 }
             }
         },
@@ -1766,7 +1822,6 @@ const docTemplate = `{
             "required": [
                 "companyId",
                 "name",
-                "price",
                 "propertygroups"
             ],
             "properties": {
@@ -1778,9 +1833,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "price": {
-                    "type": "integer"
                 },
                 "propertygroups": {
                     "type": "array",
@@ -1870,6 +1922,25 @@ const docTemplate = `{
                 }
             }
         },
+        "request.GetPrice": {
+            "type": "object",
+            "required": [
+                "endDt",
+                "propertyId",
+                "startDt"
+            ],
+            "properties": {
+                "endDt": {
+                    "type": "string"
+                },
+                "propertyId": {
+                    "type": "string"
+                },
+                "startDt": {
+                    "type": "string"
+                }
+            }
+        },
         "request.Signin": {
             "type": "object",
             "required": [
@@ -1923,7 +1994,8 @@ const docTemplate = `{
                 "endDt",
                 "name",
                 "propertygroupId",
-                "startDt"
+                "startDt",
+                "status"
             ],
             "properties": {
                 "description": {
@@ -1940,6 +2012,9 @@ const docTemplate = `{
                 },
                 "startDt": {
                     "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/constant.EventStatus"
                 }
             }
         },
@@ -1964,8 +2039,7 @@ const docTemplate = `{
         "request.UpdateProperty": {
             "type": "object",
             "required": [
-                "name",
-                "price"
+                "name"
             ],
             "properties": {
                 "description": {
@@ -1973,9 +2047,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "price": {
-                    "type": "integer"
                 }
             }
         },

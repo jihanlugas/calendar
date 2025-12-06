@@ -3,6 +3,7 @@ package event
 import (
 	"errors"
 	"fmt"
+
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
@@ -94,6 +95,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 		Description:     req.Description,
 		StartDt:         req.StartDt,
 		EndDt:           req.EndDt,
+		Status:          req.Status,
 		CreateBy:        loginUser.UserID,
 		UpdateBy:        loginUser.UserID,
 	}
@@ -134,6 +136,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEv
 	tEvent.Description = req.Description
 	tEvent.StartDt = req.StartDt
 	tEvent.EndDt = req.EndDt
+	tEvent.Status = req.Status
 	tEvent.UpdateBy = loginUser.UserID
 	err = u.repository.Save(tx, tEvent)
 	if err != nil {

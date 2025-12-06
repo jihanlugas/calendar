@@ -1,4 +1,12 @@
 definitions:
+  constant.EventStatus:
+    enum:
+    - HOLD
+    - CONFIRM
+    type: string
+    x-enum-varnames:
+    - EVENT_STATUS_HOLD
+    - EVENT_STATUS_CONFIRM
   request.ChangePassword:
     properties:
       confirmPasswd:
@@ -31,6 +39,8 @@ definitions:
         type: string
       startDt:
         type: string
+      status:
+        $ref: '#/definitions/constant.EventStatus'
     required:
     - companyId
     - endDt
@@ -38,6 +48,7 @@ definitions:
     - propertyId
     - propertygroupId
     - startDt
+    - status
     type: object
   request.CreateProduct:
     properties:
@@ -62,8 +73,6 @@ definitions:
         type: string
       name:
         type: string
-      price:
-        type: integer
       propertygroups:
         items:
           $ref: '#/definitions/request.CreatePropertyPropertytimeline'
@@ -71,7 +80,6 @@ definitions:
     required:
     - companyId
     - name
-    - price
     - propertygroups
     type: object
   request.CreatePropertyPropertytimeline:
@@ -130,6 +138,19 @@ definitions:
     - phoneNumber
     - username
     type: object
+  request.GetPrice:
+    properties:
+      endDt:
+        type: string
+      propertyId:
+        type: string
+      startDt:
+        type: string
+    required:
+    - endDt
+    - propertyId
+    - startDt
+    type: object
   request.Signin:
     properties:
       passwd:
@@ -175,11 +196,14 @@ definitions:
         type: string
       startDt:
         type: string
+      status:
+        $ref: '#/definitions/constant.EventStatus'
     required:
     - endDt
     - name
     - propertygroupId
     - startDt
+    - status
     type: object
   request.UpdateProduct:
     properties:
@@ -199,11 +223,8 @@ definitions:
         type: string
       name:
         type: string
-      price:
-        type: integer
     required:
     - name
-    - price
     type: object
   request.UpdatePropertygroup:
     properties:
@@ -547,7 +568,6 @@ paths:
       parameters:
       - in: query
         name: companyId
-        required: true
         type: string
       - in: query
         name: endDt
@@ -558,7 +578,6 @@ paths:
         type: string
       - in: query
         name: propertyId
-        required: true
         type: string
       - in: query
         name: propertygroupId
@@ -911,6 +930,32 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/request.UpdateProperty'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - BearerAuth: []
+      tags:
+      - Property
+  /property/get-price:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: json req body
+        in: body
+        name: req
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetPrice'
       produces:
       - application/json
       responses:

@@ -2,9 +2,9 @@ package company
 
 import (
 	"fmt"
+
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/utils"
 	"gorm.io/gorm"
 )
 
@@ -30,9 +30,7 @@ func (r repository) Name() string {
 
 func (r repository) GetTableById(conn *gorm.DB, id string, preloads ...string) (tCompany model.Company, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadCompany) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 
 	err = conn.Where("id = ? ", id).First(&tCompany).Error
@@ -46,9 +44,7 @@ func (r repository) GetTableByName(conn *gorm.DB, name string) (tCompany model.C
 
 func (r repository) GetViewById(conn *gorm.DB, id string, preloads ...string) (vCompany model.CompanyView, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadCompany) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 
 	err = conn.Where("id = ? ", id).First(&vCompany).Error

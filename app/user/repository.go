@@ -35,9 +35,7 @@ func (r repository) Name() string {
 
 func (r repository) GetTableById(conn *gorm.DB, id string, preloads ...string) (tUser model.User, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadUser) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 	err = conn.Where("id = ? ", id).First(&tUser).Error
 	return tUser, err
@@ -45,9 +43,7 @@ func (r repository) GetTableById(conn *gorm.DB, id string, preloads ...string) (
 
 func (r repository) GetByUsername(conn *gorm.DB, username string, preloads ...string) (tUser model.User, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadUser) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 	err = conn.Where("username = ? ", username).First(&tUser).Error
 	return tUser, err
@@ -55,9 +51,7 @@ func (r repository) GetByUsername(conn *gorm.DB, username string, preloads ...st
 
 func (r repository) GetByEmail(conn *gorm.DB, email string, preloads ...string) (tUser model.User, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadUser) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 	err = conn.Where("email = ? ", email).First(&tUser).Error
 	return tUser, err
@@ -65,9 +59,7 @@ func (r repository) GetByEmail(conn *gorm.DB, email string, preloads ...string) 
 
 func (r repository) GetByPhoneNumber(conn *gorm.DB, phoneNumber string, preloads ...string) (tUser model.User, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadUser) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 	err = conn.Where("no_hp = ? ", utils.FormatPhoneTo62(phoneNumber)).First(&tUser).Error
 	return tUser, err
@@ -75,9 +67,7 @@ func (r repository) GetByPhoneNumber(conn *gorm.DB, phoneNumber string, preloads
 
 func (r repository) GetViewById(conn *gorm.DB, id string, preloads ...string) (vUser model.UserView, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadUser) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 	err = conn.Where("id = ? ", id).First(&vUser).Error
 	return vUser, err
@@ -85,9 +75,7 @@ func (r repository) GetViewById(conn *gorm.DB, id string, preloads ...string) (v
 
 func (r repository) GetViewByUsername(conn *gorm.DB, username string, preloads ...string) (vUser model.UserView, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadUser) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 	err = conn.Where("username = ? ", username).First(&vUser).Error
 	return vUser, err
@@ -95,9 +83,7 @@ func (r repository) GetViewByUsername(conn *gorm.DB, username string, preloads .
 
 func (r repository) GetViewByEmail(conn *gorm.DB, email string, preloads ...string) (vUser model.UserView, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadUser) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 	err = conn.Where("email = ? ", email).First(&vUser).Error
 	return vUser, err
@@ -105,9 +91,7 @@ func (r repository) GetViewByEmail(conn *gorm.DB, email string, preloads ...stri
 
 func (r repository) GetViewByPhoneNumber(conn *gorm.DB, phoneNumber string, preloads ...string) (vUser model.UserView, err error) {
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadUser) {
-			conn = conn.Preload(preload)
-		}
+		conn = conn.Preload(preload)
 	}
 	err = conn.Where("no_hp = ? ", phoneNumber).First(&vUser).Error
 	return vUser, err
@@ -134,9 +118,7 @@ func (r repository) Page(conn *gorm.DB, req request.PageUser) (vUsers []model.Us
 
 	preloads := strings.Split(req.Preloads, ",")
 	for _, preload := range preloads {
-		if utils.IsAvailablePreload(preload, model.PreloadUser) {
-			query = query.Preload(preload)
-		}
+		query = query.Preload(preload)
 	}
 
 	// query
