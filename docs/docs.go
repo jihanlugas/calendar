@@ -265,16 +265,6 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "name": "propertygroupId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "propertygroupName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
                         "example": "",
                         "name": "sortField",
                         "in": "query"
@@ -283,6 +273,16 @@ const docTemplate = `{
                         "type": "string",
                         "example": "",
                         "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "unitId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "unitName",
                         "in": "query"
                     }
                 ],
@@ -383,14 +383,14 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "name": "propertygroupId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
                         "name": "startDt",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "unitId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1140,7 +1140,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/propertygroup": {
+        "/unit": {
             "get": {
                 "security": [
                     {
@@ -1154,7 +1154,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Propertygroup"
+                    "Unit"
                 ],
                 "parameters": [
                     {
@@ -1201,12 +1201,12 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "name": "propertyName",
+                        "name": "propertyId",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "name": "propertygroupId",
+                        "name": "propertyName",
                         "in": "query"
                     },
                     {
@@ -1250,7 +1250,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Propertygroup"
+                    "Unit"
                 ],
                 "parameters": [
                     {
@@ -1259,7 +1259,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.CreatePropertygroup"
+                            "$ref": "#/definitions/request.CreateUnit"
                         }
                     }
                 ],
@@ -1279,7 +1279,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/propertygroup/{id}": {
+        "/unit/{id}": {
             "get": {
                 "security": [
                     {
@@ -1293,7 +1293,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Propertygroup"
+                    "Unit"
                 ],
                 "parameters": [
                     {
@@ -1332,7 +1332,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Propertygroup"
+                    "Unit"
                 ],
                 "parameters": [
                     {
@@ -1348,7 +1348,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UpdatePropertygroup"
+                            "$ref": "#/definitions/request.UpdateUnit"
                         }
                     }
                 ],
@@ -1380,7 +1380,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Propertygroup"
+                    "Unit"
                 ],
                 "parameters": [
                     {
@@ -1764,9 +1764,9 @@ const docTemplate = `{
                 "endDt",
                 "name",
                 "propertyId",
-                "propertygroupId",
                 "startDt",
-                "status"
+                "status",
+                "unitId"
             ],
             "properties": {
                 "companyId": {
@@ -1784,14 +1784,14 @@ const docTemplate = `{
                 "propertyId": {
                     "type": "string"
                 },
-                "propertygroupId": {
-                    "type": "string"
-                },
                 "startDt": {
                     "type": "string"
                 },
                 "status": {
                     "$ref": "#/definitions/constant.EventStatus"
+                },
+                "unitId": {
+                    "type": "string"
                 }
             }
         },
@@ -1822,7 +1822,7 @@ const docTemplate = `{
             "required": [
                 "companyId",
                 "name",
-                "propertygroups"
+                "units"
             ],
             "properties": {
                 "companyId": {
@@ -1834,7 +1834,7 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "propertygroups": {
+                "units": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/request.CreatePropertyPropertytimeline"
@@ -1856,7 +1856,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request.CreatePropertygroup": {
+        "request.CreateUnit": {
             "type": "object",
             "required": [
                 "companyId",
@@ -1993,9 +1993,9 @@ const docTemplate = `{
             "required": [
                 "endDt",
                 "name",
-                "propertygroupId",
                 "startDt",
-                "status"
+                "status",
+                "unitId"
             ],
             "properties": {
                 "description": {
@@ -2007,14 +2007,14 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
-                "propertygroupId": {
-                    "type": "string"
-                },
                 "startDt": {
                     "type": "string"
                 },
                 "status": {
                     "$ref": "#/definitions/constant.EventStatus"
+                },
+                "unitId": {
+                    "type": "string"
                 }
             }
         },
@@ -2050,7 +2050,7 @@ const docTemplate = `{
                 }
             }
         },
-        "request.UpdatePropertygroup": {
+        "request.UpdateUnit": {
             "type": "object",
             "required": [
                 "name"

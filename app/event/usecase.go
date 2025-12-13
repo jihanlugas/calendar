@@ -87,17 +87,17 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 	tx := conn.Begin()
 
 	tEvent = model.Event{
-		ID:              utils.GetUniqueID(),
-		CompanyID:       req.CompanyID,
-		PropertyID:      req.PropertyID,
-		PropertygroupID: req.PropertygroupID,
-		Name:            req.Name,
-		Description:     req.Description,
-		StartDt:         req.StartDt,
-		EndDt:           req.EndDt,
-		Status:          req.Status,
-		CreateBy:        loginUser.UserID,
-		UpdateBy:        loginUser.UserID,
+		ID:          utils.GetUniqueID(),
+		CompanyID:   req.CompanyID,
+		PropertyID:  req.PropertyID,
+		UnitID:      req.UnitID,
+		Name:        req.Name,
+		Description: req.Description,
+		StartDt:     req.StartDt,
+		EndDt:       req.EndDt,
+		Status:      req.Status,
+		CreateBy:    loginUser.UserID,
+		UpdateBy:    loginUser.UserID,
 	}
 
 	err = u.repository.Create(tx, tEvent)
@@ -131,7 +131,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEv
 
 	tx := conn.Begin()
 
-	tEvent.PropertygroupID = req.PropertygroupID
+	tEvent.UnitID = req.UnitID
 	tEvent.Name = req.Name
 	tEvent.Description = req.Description
 	tEvent.StartDt = req.StartDt

@@ -35,20 +35,20 @@ definitions:
         type: string
       propertyId:
         type: string
-      propertygroupId:
-        type: string
       startDt:
         type: string
       status:
         $ref: '#/definitions/constant.EventStatus'
+      unitId:
+        type: string
     required:
     - companyId
     - endDt
     - name
     - propertyId
-    - propertygroupId
     - startDt
     - status
+    - unitId
     type: object
   request.CreateProduct:
     properties:
@@ -73,14 +73,14 @@ definitions:
         type: string
       name:
         type: string
-      propertygroups:
+      units:
         items:
           $ref: '#/definitions/request.CreatePropertyPropertytimeline'
         type: array
     required:
     - companyId
     - name
-    - propertygroups
+    - units
     type: object
   request.CreatePropertyPropertytimeline:
     properties:
@@ -91,7 +91,7 @@ definitions:
     required:
     - name
     type: object
-  request.CreatePropertygroup:
+  request.CreateUnit:
     properties:
       companyId:
         type: string
@@ -192,18 +192,18 @@ definitions:
         type: string
       name:
         type: string
-      propertygroupId:
-        type: string
       startDt:
         type: string
       status:
         $ref: '#/definitions/constant.EventStatus'
+      unitId:
+        type: string
     required:
     - endDt
     - name
-    - propertygroupId
     - startDt
     - status
+    - unitId
     type: object
   request.UpdateProduct:
     properties:
@@ -226,7 +226,7 @@ definitions:
     required:
     - name
     type: object
-  request.UpdatePropertygroup:
+  request.UpdateUnit:
     properties:
       description:
         type: string
@@ -428,12 +428,6 @@ paths:
       - in: query
         name: propertyName
         type: string
-      - in: query
-        name: propertygroupId
-        type: string
-      - in: query
-        name: propertygroupName
-        type: string
       - example: ""
         in: query
         name: sortField
@@ -441,6 +435,12 @@ paths:
       - example: ""
         in: query
         name: sortOrder
+        type: string
+      - in: query
+        name: unitId
+        type: string
+      - in: query
+        name: unitName
         type: string
       produces:
       - application/json
@@ -580,11 +580,11 @@ paths:
         name: propertyId
         type: string
       - in: query
-        name: propertygroupId
-        type: string
-      - in: query
         name: startDt
         required: true
+        type: string
+      - in: query
+        name: unitId
         type: string
       produces:
       - application/json
@@ -971,7 +971,7 @@ paths:
       - BearerAuth: []
       tags:
       - Property
-  /propertygroup:
+  /unit:
     get:
       consumes:
       - application/json
@@ -1003,10 +1003,10 @@ paths:
         name: preloads
         type: string
       - in: query
-        name: propertyName
+        name: propertyId
         type: string
       - in: query
-        name: propertygroupId
+        name: propertyName
         type: string
       - example: ""
         in: query
@@ -1030,7 +1030,7 @@ paths:
       security:
       - BearerAuth: []
       tags:
-      - Propertygroup
+      - Unit
     post:
       consumes:
       - application/json
@@ -1040,7 +1040,7 @@ paths:
         name: req
         required: true
         schema:
-          $ref: '#/definitions/request.CreatePropertygroup'
+          $ref: '#/definitions/request.CreateUnit'
       produces:
       - application/json
       responses:
@@ -1055,8 +1055,8 @@ paths:
       security:
       - BearerAuth: []
       tags:
-      - Propertygroup
-  /propertygroup/{id}:
+      - Unit
+  /unit/{id}:
     delete:
       consumes:
       - application/json
@@ -1080,7 +1080,7 @@ paths:
       security:
       - BearerAuth: []
       tags:
-      - Propertygroup
+      - Unit
     get:
       consumes:
       - application/json
@@ -1104,7 +1104,7 @@ paths:
       security:
       - BearerAuth: []
       tags:
-      - Propertygroup
+      - Unit
     put:
       consumes:
       - application/json
@@ -1119,7 +1119,7 @@ paths:
         name: req
         required: true
         schema:
-          $ref: '#/definitions/request.UpdatePropertygroup'
+          $ref: '#/definitions/request.UpdateUnit'
       produces:
       - application/json
       responses:
@@ -1134,7 +1134,7 @@ paths:
       security:
       - BearerAuth: []
       tags:
-      - Propertygroup
+      - Unit
   /user:
     get:
       consumes:

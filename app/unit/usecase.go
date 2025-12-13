@@ -1,8 +1,9 @@
-package propertygroup
+package unit
 
 import (
 	"errors"
 	"fmt"
+
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
@@ -12,10 +13,10 @@ import (
 )
 
 type Usecase interface {
-	Page(loginUser jwt.UserLogin, req request.PagePropertygroup) (vPropertygroups []model.PropertygroupView, count int64, err error)
-	GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vPropertygroup model.PropertygroupView, err error)
-	Create(loginUser jwt.UserLogin, req request.CreatePropertygroup) error
-	Update(loginUser jwt.UserLogin, id string, req request.UpdatePropertygroup) error
+	Page(loginUser jwt.UserLogin, req request.PageUnit) (vUnits []model.UnitView, count int64, err error)
+	GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vUnit model.UnitView, err error)
+	Create(loginUser jwt.UserLogin, req request.CreateUnit) error
+	Update(loginUser jwt.UserLogin, id string, req request.UpdateUnit) error
 	Delete(loginUser jwt.UserLogin, id string) error
 }
 
@@ -23,41 +24,41 @@ type usecase struct {
 	repository Repository
 }
 
-func (u usecase) Page(loginUser jwt.UserLogin, req request.PagePropertygroup) (vPropertygroups []model.PropertygroupView, count int64, err error) {
+func (u usecase) Page(loginUser jwt.UserLogin, req request.PageUnit) (vUnits []model.UnitView, count int64, err error) {
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
 
 	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return vPropertygroups, count, errors.New(response.ErrorHandlerIDOR)
+		return vUnits, count, errors.New(response.ErrorHandlerIDOR)
 	}
 
-	vPropertygroups, count, err = u.repository.Page(conn, req)
+	vUnits, count, err = u.repository.Page(conn, req)
 	if err != nil {
-		return vPropertygroups, count, err
+		return vUnits, count, err
 	}
 
-	return vPropertygroups, count, err
+	return vUnits, count, err
 }
 
-func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vPropertygroup model.PropertygroupView, err error) {
+func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vUnit model.UnitView, err error) {
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
 
-	vPropertygroup, err = u.repository.GetViewById(conn, id, preloads...)
+	vUnit, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
-		return vPropertygroup, errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return vUnit, errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, vPropertygroup.CompanyID) {
-		return vPropertygroup, errors.New(response.ErrorHandlerIDOR)
+	if jwt.IsSaveCompanyIDOR(loginUser, vUnit.CompanyID) {
+		return vUnit, errors.New(response.ErrorHandlerIDOR)
 	}
 
-	return vPropertygroup, err
+	return vUnit, err
 }
 
-func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertygroup) error {
+func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUnit) error {
 	var err error
-	var tPropertygroup model.Propertygroup
+	var tUnit model.Unit
 
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
@@ -68,7 +69,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertygroup
 
 	tx := conn.Begin()
 
-	tPropertygroup = model.Propertygroup{
+	tUnit = model.Unit{
 		ID:          utils.GetUniqueID(),
 		CompanyID:   req.CompanyID,
 		PropertyID:  req.PropertyID,
@@ -78,7 +79,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertygroup
 		UpdateBy:    loginUser.UserID,
 	}
 
-	err = u.repository.Create(tx, tPropertygroup)
+	err = u.repository.Create(tx, tUnit)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repository.Name(), err))
 	}
@@ -91,28 +92,28 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertygroup
 	return err
 }
 
-func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePropertygroup) error {
+func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUnit) error {
 	var err error
-	var tPropertygroup model.Propertygroup
+	var tUnit model.Unit
 
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
 
-	tPropertygroup, err = u.repository.GetTableById(conn, id)
+	tUnit, err = u.repository.GetTableById(conn, id)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tPropertygroup.CompanyID) {
+	if jwt.IsSaveCompanyIDOR(loginUser, tUnit.CompanyID) {
 		return errors.New(response.ErrorHandlerIDOR)
 	}
 
 	tx := conn.Begin()
 
-	tPropertygroup.Name = req.Name
-	tPropertygroup.Description = req.Description
-	tPropertygroup.UpdateBy = loginUser.UserID
-	err = u.repository.Save(tx, tPropertygroup)
+	tUnit.Name = req.Name
+	tUnit.Description = req.Description
+	tUnit.UpdateBy = loginUser.UserID
+	err = u.repository.Save(tx, tUnit)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to update %s: %v", u.repository.Name(), err))
 	}
@@ -127,23 +128,23 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 	var err error
-	var tPropertygroup model.Propertygroup
+	var tUnit model.Unit
 
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
 
-	tPropertygroup, err = u.repository.GetTableById(conn, id)
+	tUnit, err = u.repository.GetTableById(conn, id)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tPropertygroup.CompanyID) {
+	if jwt.IsSaveCompanyIDOR(loginUser, tUnit.CompanyID) {
 		return errors.New(response.ErrorHandlerIDOR)
 	}
 
 	tx := conn.Begin()
 
-	err = u.repository.Delete(tx, tPropertygroup)
+	err = u.repository.Delete(tx, tUnit)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to delete %s: %v", u.repository.Name(), err))
 	}

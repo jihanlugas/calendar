@@ -11,10 +11,10 @@ type PageProperty struct {
 }
 
 type CreateProperty struct {
-	CompanyID      string                           `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
-	Name           string                           `json:"name" form:"name" query:"name" validate:"required"`
-	Description    string                           `json:"description" form:"description" query:"description" validate:""`
-	Propertygroups []CreatePropertyPropertytimeline `json:"propertygroups" form:"propertygroups" query:"propertygroups" validate:"required"`
+	CompanyID   string                           `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
+	Name        string                           `json:"name" form:"name" query:"name" validate:"required"`
+	Description string                           `json:"description" form:"description" query:"description" validate:""`
+	Units       []CreatePropertyPropertytimeline `json:"units" form:"units" query:"units" validate:"required"`
 	//CreatePropertytimeline
 }
 

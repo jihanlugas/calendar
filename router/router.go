@@ -11,9 +11,9 @@ import (
 	"github.com/jihanlugas/calendar/app/photo"
 	"github.com/jihanlugas/calendar/app/product"
 	"github.com/jihanlugas/calendar/app/property"
-	"github.com/jihanlugas/calendar/app/propertygroup"
 	"github.com/jihanlugas/calendar/app/propertyprice"
 	"github.com/jihanlugas/calendar/app/propertytimeline"
+	"github.com/jihanlugas/calendar/app/unit"
 	"github.com/jihanlugas/calendar/app/user"
 	"github.com/jihanlugas/calendar/app/usercompany"
 	"github.com/jihanlugas/calendar/app/websocket"
@@ -47,7 +47,7 @@ func Init() *echo.Echo {
 	productRepository := product.NewRepository()
 	propertyRepository := property.NewRepository()
 	propertytimelineRepository := propertytimeline.NewRepository()
-	propertygroupRepository := propertygroup.NewRepository()
+	unitRepository := unit.NewRepository()
 	propertypriceRepository := propertyprice.NewRepository()
 	eventRepository := event.NewRepository()
 
@@ -57,8 +57,8 @@ func Init() *echo.Echo {
 	userUsecase := user.NewUsecase(userRepository, usercompanyRepository)
 	companyUsecase := company.NewUsecase(companyRepository, usercompanyRepository)
 	productUsecase := product.NewUsecase(productRepository)
-	propertyUsecase := property.NewUsecase(propertyRepository, propertytimelineRepository, propertygroupRepository, propertypriceRepository)
-	propertygroupUsecase := propertygroup.NewUsecase(propertygroupRepository)
+	propertyUsecase := property.NewUsecase(propertyRepository, propertytimelineRepository, unitRepository, propertypriceRepository)
+	unitUsecase := unit.NewUsecase(unitRepository)
 	eventUsecase := event.NewUsecase(eventRepository)
 
 	// handlers
@@ -68,7 +68,7 @@ func Init() *echo.Echo {
 	userHandler := user.NewHandler(userUsecase)
 	propertyHandler := property.NewHandler(propertyUsecase)
 	productHandler := product.NewHandler(productUsecase)
-	propertygroupHandler := propertygroup.NewHandler(propertygroupUsecase)
+	unitHandler := unit.NewHandler(unitUsecase)
 	eventHandler := event.NewHandler(eventUsecase)
 	websocketHandler := websocket.NewHandler(hubManager)
 
@@ -114,12 +114,12 @@ func Init() *echo.Echo {
 	routerProduct.GET("/:id", productHandler.GetById)
 	routerProduct.DELETE("/:id", productHandler.Delete)
 
-	routerPropertygroup := router.Group("/propertygroup", checkTokenMiddleware)
-	routerPropertygroup.GET("", propertygroupHandler.Page)
-	routerPropertygroup.POST("", propertygroupHandler.Create)
-	routerPropertygroup.PUT("/:id", propertygroupHandler.Update)
-	routerPropertygroup.GET("/:id", propertygroupHandler.GetById)
-	routerPropertygroup.DELETE("/:id", propertygroupHandler.Delete)
+	routerUnit := router.Group("/unit", checkTokenMiddleware)
+	routerUnit.GET("", unitHandler.Page)
+	routerUnit.POST("", unitHandler.Create)
+	routerUnit.PUT("/:id", unitHandler.Update)
+	routerUnit.GET("/:id", unitHandler.GetById)
+	routerUnit.DELETE("/:id", unitHandler.Delete)
 
 	routerEvent := router.Group("/event", checkTokenMiddleware)
 	routerEvent.GET("", eventHandler.Page)

@@ -2,13 +2,14 @@ package model
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/jihanlugas/calendar/config"
 	"github.com/jihanlugas/calendar/utils"
 	"gorm.io/gorm"
-	"time"
 )
 
-func (m *Propertygroup) BeforeCreate(tx *gorm.DB) (err error) {
+func (m *Unit) BeforeCreate(tx *gorm.DB) (err error) {
 	now := time.Now()
 
 	if m.ID == "" {
@@ -24,13 +25,13 @@ func (m *Propertygroup) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
-func (m *Propertygroup) BeforeUpdate(tx *gorm.DB) (err error) {
+func (m *Unit) BeforeUpdate(tx *gorm.DB) (err error) {
 	now := time.Now()
 	m.UpdateDt = now
 	return
 }
 
-func (m *PropertygroupView) AfterFind(tx *gorm.DB) (err error) {
+func (m *UnitView) AfterFind(tx *gorm.DB) (err error) {
 	if m.PhotoID != "" {
 		m.PhotoUrl = fmt.Sprintf("%s/%s", config.FileBaseUrl, m.PhotoUrl)
 	}

@@ -149,7 +149,7 @@ Authorization: Bearer <your_token_here>
 │   ├── photo/           # Photo handling
 │   ├── product/         # Product management
 │   ├── property/        # Property management
-│   ├── propertygroup/   # Property group management
+│   ├── unit/            # Unit management
 │   ├── propertyprice/   # Property pricing
 │   ├── propertytimeline/# Property timeline
 │   ├── user/            # User management

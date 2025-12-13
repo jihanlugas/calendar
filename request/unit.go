@@ -1,9 +1,9 @@
 package request
 
-type PagePropertygroup struct {
+type PageUnit struct {
 	Paging
 	CompanyID    string `json:"companyId" form:"companyId" query:"companyId"`
-	PropertyID   string `json:"propertygroupId" form:"propertygroupId" query:"propertygroupId"`
+	PropertyID   string `json:"propertyId" form:"propertyId" query:"propertyId"`
 	Name         string `json:"name" form:"name" query:"name"`
 	Description  string `json:"description" form:"description" query:"description"`
 	CompanyName  string `json:"companyName" form:"companyName" query:"companyName"`
@@ -12,14 +12,14 @@ type PagePropertygroup struct {
 	Preloads     string `json:"preloads" form:"preloads" query:"preloads"`
 }
 
-type CreatePropertygroup struct {
+type CreateUnit struct {
 	CompanyID   string `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
 	PropertyID  string `json:"propertyId" form:"propertyId" query:"propertyId" validate:"required"`
 	Name        string `json:"name" form:"name" query:"name" validate:"required"`
 	Description string `json:"description" form:"description" query:"description" validate:""`
 }
 
-type UpdatePropertygroup struct {
+type UpdateUnit struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required"`
 	Description string `json:"description" form:"description" query:"description" validate:""`
 }

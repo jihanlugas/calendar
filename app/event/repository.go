@@ -87,8 +87,8 @@ func (r repository) Page(conn *gorm.DB, req request.PageEvent) (vEvents []model.
 	if req.PropertyID != "" {
 		query = query.Where("property_id = ?", req.PropertyID)
 	}
-	if req.PropertygroupID != "" {
-		query = query.Where("propertygroup_id = ?", req.PropertygroupID)
+	if req.UnitID != "" {
+		query = query.Where("unit_id = ?", req.UnitID)
 	}
 	if req.Name != "" {
 		query = query.Where("name ILIKE ?", "%"+req.Name+"%")
@@ -102,8 +102,8 @@ func (r repository) Page(conn *gorm.DB, req request.PageEvent) (vEvents []model.
 	if req.PropertyName != "" {
 		query = query.Where("property_name ILIKE ?", "%"+req.PropertyName+"%")
 	}
-	if req.PropertygroupName != "" {
-		query = query.Where("propertygroup_name ILIKE ?", "%"+req.PropertygroupName+"%")
+	if req.UnitName != "" {
+		query = query.Where("unit_name ILIKE ?", "%"+req.UnitName+"%")
 	}
 	if req.CreateName != "" {
 		query = query.Where("create_name ILIKE ?", "%"+req.CreateName+"%")
@@ -152,8 +152,8 @@ func (r repository) Timeline(conn *gorm.DB, req request.TimelineEvent) (vEvents 
 	if req.PropertyID != "" {
 		query = query.Where("property_id = ?", req.PropertyID)
 	}
-	if req.PropertygroupID != "" {
-		query = query.Where("propertygroup_id = ?", req.PropertygroupID)
+	if req.UnitID != "" {
+		query = query.Where("unit_id = ?", req.UnitID)
 	}
 
 	err = query.Find(&vEvents).Error

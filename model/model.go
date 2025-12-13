@@ -9,7 +9,7 @@ const (
 	VIEW_PROPERTY           = "properties_view"
 	VIEW_PROPERTYPRICE      = "propertyprices_view"
 	VIEW_PROPERTYTIMELINE   = "propertytimelines_view"
-	VIEW_PROPERTYGROUP      = "propertygroups_view"
+	VIEW_UNIT               = "units_view"
 	VIEW_EVENT              = "events_view"
 	VIEW_PRODUCT            = "products_view"
 	VIEW_TRANSACTION        = "transactions_view"

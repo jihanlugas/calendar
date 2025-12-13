@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jihanlugas/calendar/app/propertygroup"
 	"github.com/jihanlugas/calendar/app/propertyprice"
 	"github.com/jihanlugas/calendar/app/propertytimeline"
+	"github.com/jihanlugas/calendar/app/unit"
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
@@ -27,7 +27,7 @@ type Usecase interface {
 type usecase struct {
 	repository                 Repository
 	repositoryPropertytimeline propertytimeline.Repository
-	repositoryPropertygroup    propertygroup.Repository
+	repositoryUnit             unit.Repository
 	repositoryPropertyprice    propertyprice.Repository
 }
 
@@ -67,7 +67,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 	var err error
 	var tProperty model.Property
 	var tPropertytimeline model.Propertytimeline
-	var tPropertygroups []model.Propertygroup
+	var tUnits []model.Unit
 
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
@@ -110,21 +110,21 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err))
 	}
 
-	for _, propertygroup := range req.Propertygroups {
-		tPropertygroup := model.Propertygroup{
+	for _, unit := range req.Units {
+		tUnit := model.Unit{
 			CompanyID:   req.CompanyID,
 			PropertyID:  tProperty.ID,
-			Name:        propertygroup.Name,
-			Description: propertygroup.Description,
+			Name:        unit.Name,
+			Description: unit.Description,
 			PhotoID:     "",
 			CreateBy:    loginUser.UserID,
 			UpdateBy:    loginUser.UserID,
 		}
 
-		tPropertygroups = append(tPropertygroups, tPropertygroup)
+		tUnits = append(tUnits, tUnit)
 	}
 
-	err = u.repositoryPropertygroup.Creates(tx, tPropertygroups)
+	err = u.repositoryUnit.Creates(tx, tUnits)
 	if err != nil {
 		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err))
 	}
@@ -211,15 +211,15 @@ func (u usecase) GetPrice(req request.GetPrice) (price int64, err error) {
 	if err != nil {
 		return price, err
 	}
-	
+
 	return
 }
 
-func NewUsecase(repository Repository, repositoryPropertytimeline propertytimeline.Repository, repositoryPropertygroup propertygroup.Repository, repositoryPropertyprice propertyprice.Repository) Usecase {
+func NewUsecase(repository Repository, repositoryPropertytimeline propertytimeline.Repository, repositoryUnit unit.Repository, repositoryPropertyprice propertyprice.Repository) Usecase {
 	return &usecase{
 		repository:                 repository,
 		repositoryPropertytimeline: repositoryPropertytimeline,
-		repositoryPropertygroup:    repositoryPropertygroup,
+		repositoryUnit:             repositoryUnit,
 		repositoryPropertyprice:    repositoryPropertyprice,
 	}
 }

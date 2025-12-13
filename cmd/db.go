@@ -53,7 +53,7 @@ func dbUpTable() {
 	if err != nil {
 		panic(err)
 	}
-	err = conn.Migrator().AutoMigrate(&model.Propertygroup{})
+	err = conn.Migrator().AutoMigrate(&model.Unit{})
 	if err != nil {
 		panic(err)
 	}
@@ -193,20 +193,20 @@ func dbUpView() {
 		panic(err)
 	}
 
-	err = conn.Migrator().DropView(model.VIEW_PROPERTYGROUP)
+	err = conn.Migrator().DropView(model.VIEW_UNIT)
 	if err != nil {
 		panic(err)
 	}
-	vPropertygroup := conn.Model(&model.Propertygroup{}).Unscoped().
-		Select("propertygroups.*, companies.name as company_name, properties.name as property_name, u1.fullname as create_name, u2.fullname as update_name").
-		Joins("left join companies companies on companies.id = propertygroups.company_id").
-		Joins("left join properties properties on properties.id = propertygroups.property_id").
-		Joins("left join users u1 on u1.id = propertygroups.create_by").
-		Joins("left join users u2 on u2.id = propertygroups.update_by")
+	vUnit := conn.Model(&model.Unit{}).Unscoped().
+		Select("units.*, companies.name as company_name, properties.name as property_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = units.company_id").
+		Joins("left join properties properties on properties.id = units.property_id").
+		Joins("left join users u1 on u1.id = units.create_by").
+		Joins("left join users u2 on u2.id = units.update_by")
 
-	err = conn.Migrator().CreateView(model.VIEW_PROPERTYGROUP, gorm.ViewOption{
+	err = conn.Migrator().CreateView(model.VIEW_UNIT, gorm.ViewOption{
 		Replace: true,
-		Query:   vPropertygroup,
+		Query:   vUnit,
 	})
 	if err != nil {
 		panic(err)
@@ -217,10 +217,10 @@ func dbUpView() {
 		panic(err)
 	}
 	vEvent := conn.Model(&model.Event{}).Unscoped().
-		Select("events.*, companies.name as company_name, properties.name as property_name, propertygroups.name as propertygroup_name, u1.fullname as create_name, u2.fullname as update_name").
+		Select("events.*, companies.name as company_name, properties.name as property_name, units.name as unit_name, u1.fullname as create_name, u2.fullname as update_name").
 		Joins("left join companies companies on companies.id = events.company_id").
 		Joins("left join properties properties on properties.id = events.property_id").
-		Joins("left join propertygroups propertygroups on propertygroups.id = events.propertygroup_id").
+		Joins("left join units units on units.id = events.unit_id").
 		Joins("left join users u1 on u1.id = events.create_by").
 		Joins("left join users u2 on u2.id = events.update_by")
 
@@ -587,10 +587,10 @@ func dbSeed() {
 	}
 	tx.Create(&propertyprices)
 
-	propertygroups := []model.Propertygroup{}
+	units := []model.Unit{}
 	for i, property := range properties {
 		for j := 0; j < (3 + i); j++ {
-			propertygroup := model.Propertygroup{
+			unit := model.Unit{
 				PropertyID:  property.ID,
 				CompanyID:   companyID,
 				Name:        fmt.Sprintf("Lapangan %d", j+1),
@@ -598,16 +598,16 @@ func dbSeed() {
 				CreateBy:    adminID,
 				UpdateBy:    adminID,
 			}
-			propertygroups = append(propertygroups, propertygroup)
+			units = append(units, unit)
 		}
 	}
-	tx.Create(&propertygroups)
+	tx.Create(&units)
 
 	events := []model.Event{}
 	currProperty := ""
 	startDt := time.Now().Truncate(time.Hour * 24)
-	for _, propertygroup := range propertygroups {
-		if currProperty != propertygroup.PropertyID {
+	for _, unit := range units {
+		if currProperty != unit.PropertyID {
 			startDt = time.Now().Add(time.Hour * 24 * -3)
 		}
 
@@ -630,7 +630,7 @@ func dbSeed() {
 			}
 
 			getPriceReq := request.GetPrice{
-				PropertyID: propertygroup.PropertyID,
+				PropertyID: unit.PropertyID,
 				StartDt:    startDt,
 				EndDt:      endDt,
 			}
@@ -639,17 +639,17 @@ func dbSeed() {
 				fmt.Println("ERR => ", err)
 			}
 			event := model.Event{
-				PropertyID:      propertygroup.PropertyID,
-				PropertygroupID: propertygroup.ID,
-				CompanyID:       companyID,
-				Name:            fmt.Sprintf("Event %d", j+1),
-				Description:     fmt.Sprintf("Generated Data Event %d", j+1),
-				StartDt:         startDt,
-				EndDt:           endDt,
-				Status:          status,
-				Price:           price,
-				CreateBy:        adminID,
-				UpdateBy:        adminID,
+				PropertyID:  unit.PropertyID,
+				UnitID:      unit.ID,
+				CompanyID:   companyID,
+				Name:        fmt.Sprintf("Event %d", j+1),
+				Description: fmt.Sprintf("Generated Data Event %d", j+1),
+				StartDt:     startDt,
+				EndDt:       endDt,
+				Status:      status,
+				Price:       price,
+				CreateBy:    adminID,
+				UpdateBy:    adminID,
 			}
 
 			startDt = endDt.Add(time.Hour * time.Duration(utils.GetRandomNumber(0, 5)))

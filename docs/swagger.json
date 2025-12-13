@@ -258,16 +258,6 @@
                     },
                     {
                         "type": "string",
-                        "name": "propertygroupId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "name": "propertygroupName",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
                         "example": "",
                         "name": "sortField",
                         "in": "query"
@@ -276,6 +266,16 @@
                         "type": "string",
                         "example": "",
                         "name": "sortOrder",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "unitId",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "unitName",
                         "in": "query"
                     }
                 ],
@@ -376,14 +376,14 @@
                     },
                     {
                         "type": "string",
-                        "name": "propertygroupId",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
                         "name": "startDt",
                         "in": "query",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "name": "unitId",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1133,7 +1133,7 @@
                 }
             }
         },
-        "/propertygroup": {
+        "/unit": {
             "get": {
                 "security": [
                     {
@@ -1147,7 +1147,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Propertygroup"
+                    "Unit"
                 ],
                 "parameters": [
                     {
@@ -1194,12 +1194,12 @@
                     },
                     {
                         "type": "string",
-                        "name": "propertyName",
+                        "name": "propertyId",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "name": "propertygroupId",
+                        "name": "propertyName",
                         "in": "query"
                     },
                     {
@@ -1243,7 +1243,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Propertygroup"
+                    "Unit"
                 ],
                 "parameters": [
                     {
@@ -1252,7 +1252,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.CreatePropertygroup"
+                            "$ref": "#/definitions/request.CreateUnit"
                         }
                     }
                 ],
@@ -1272,7 +1272,7 @@
                 }
             }
         },
-        "/propertygroup/{id}": {
+        "/unit/{id}": {
             "get": {
                 "security": [
                     {
@@ -1286,7 +1286,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Propertygroup"
+                    "Unit"
                 ],
                 "parameters": [
                     {
@@ -1325,7 +1325,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Propertygroup"
+                    "Unit"
                 ],
                 "parameters": [
                     {
@@ -1341,7 +1341,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/request.UpdatePropertygroup"
+                            "$ref": "#/definitions/request.UpdateUnit"
                         }
                     }
                 ],
@@ -1373,7 +1373,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Propertygroup"
+                    "Unit"
                 ],
                 "parameters": [
                     {
@@ -1757,9 +1757,9 @@
                 "endDt",
                 "name",
                 "propertyId",
-                "propertygroupId",
                 "startDt",
-                "status"
+                "status",
+                "unitId"
             ],
             "properties": {
                 "companyId": {
@@ -1777,14 +1777,14 @@
                 "propertyId": {
                     "type": "string"
                 },
-                "propertygroupId": {
-                    "type": "string"
-                },
                 "startDt": {
                     "type": "string"
                 },
                 "status": {
                     "$ref": "#/definitions/constant.EventStatus"
+                },
+                "unitId": {
+                    "type": "string"
                 }
             }
         },
@@ -1815,7 +1815,7 @@
             "required": [
                 "companyId",
                 "name",
-                "propertygroups"
+                "units"
             ],
             "properties": {
                 "companyId": {
@@ -1827,7 +1827,7 @@
                 "name": {
                     "type": "string"
                 },
-                "propertygroups": {
+                "units": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/request.CreatePropertyPropertytimeline"
@@ -1849,7 +1849,7 @@
                 }
             }
         },
-        "request.CreatePropertygroup": {
+        "request.CreateUnit": {
             "type": "object",
             "required": [
                 "companyId",
@@ -1986,9 +1986,9 @@
             "required": [
                 "endDt",
                 "name",
-                "propertygroupId",
                 "startDt",
-                "status"
+                "status",
+                "unitId"
             ],
             "properties": {
                 "description": {
@@ -2000,14 +2000,14 @@
                 "name": {
                     "type": "string"
                 },
-                "propertygroupId": {
-                    "type": "string"
-                },
                 "startDt": {
                     "type": "string"
                 },
                 "status": {
                     "$ref": "#/definitions/constant.EventStatus"
+                },
+                "unitId": {
+                    "type": "string"
                 }
             }
         },
@@ -2043,7 +2043,7 @@
                 }
             }
         },
-        "request.UpdatePropertygroup": {
+        "request.UpdateUnit": {
             "type": "object",
             "required": [
                 "name"

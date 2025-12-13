@@ -2,6 +2,8 @@ package auth
 
 import (
 	"errors"
+	"time"
+
 	"github.com/jihanlugas/calendar/app/company"
 	"github.com/jihanlugas/calendar/app/user"
 	"github.com/jihanlugas/calendar/app/usercompany"
@@ -13,7 +15,6 @@ import (
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/utils"
-	"time"
 )
 
 type Usecase interface {
@@ -117,7 +118,7 @@ func (u usecase) Init(userLogin jwt.UserLogin) (vUser model.UserView, err error)
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
 
-	userPreloads := []string{"Company", "Company.Properties", "Company.Properties.Propertytimeline", "Company.Properties.Propertygroups", "Usercompanies", "Usercompanies.Company"}
+	userPreloads := []string{"Company", "Company.Properties", "Company.Properties.Propertytimeline", "Company.Properties.Units", "Usercompanies", "Usercompanies.Company"}
 	vUser, err = u.userRepository.GetViewById(conn, userLogin.UserID, userPreloads...)
 	if err != nil {
 		return vUser, err
