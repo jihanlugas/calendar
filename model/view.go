@@ -219,9 +219,9 @@ type EventView struct {
 	CreateName        string               `json:"createName"`
 	UpdateName        string               `json:"updateName"`
 
-	//Company       *CompanyView       `json:"company,omitempty"`
-	//Property      *PropertyView      `json:"property,omitempty"`
-	//Propertygroup *PropertygroupView `json:"propertygroup,omitempty"`
+	Company       *CompanyView       `json:"company,omitempty"`
+	Property      *PropertyView      `json:"property,omitempty"`
+	Propertygroup *PropertygroupView `json:"propertygroup,omitempty"`
 }
 
 func (EventView) TableName() string {
