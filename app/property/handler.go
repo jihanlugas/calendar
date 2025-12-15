@@ -222,7 +222,7 @@ func (h Handler) Delete(c echo.Context) error {
 // @Param req body request.GetPrice true "json req body"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /property/get-price [get]
+// @Router /property/get-price [post]
 func (h Handler) GetPrice(c echo.Context) error {
 	var err error
 

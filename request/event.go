@@ -38,6 +38,7 @@ type CreateEvent struct {
 	StartDt     time.Time            `json:"startDt" form:"startDt" query:"startDt" validate:"required"`
 	EndDt       time.Time            `json:"endDt" form:"endDt" query:"endDt" validate:"required"`
 	Status      constant.EventStatus `json:"status" form:"status" query:"status" validate:"required"`
+	Price       int64                `json:"price" form:"price" query:"price" validate:""`
 }
 
 type UpdateEvent struct {

@@ -96,6 +96,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 		StartDt:     req.StartDt,
 		EndDt:       req.EndDt,
 		Status:      req.Status,
+		Price:       req.Price,
 		CreateBy:    loginUser.UserID,
 		UpdateBy:    loginUser.UserID,
 	}
