@@ -1,13 +1,14 @@
 package user
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"strings"
 )
 
 type Handler struct {
@@ -88,8 +89,11 @@ func (h Handler) GetById(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
 	}
 
+	preloadSlice := []string{}
 	preloads := c.QueryParam("preloads")
-	preloadSlice := strings.Split(preloads, ",")
+	if preloads != "" {
+		preloadSlice = strings.Split(preloads, ",")
+	}
 
 	vUser, err := h.usecase.GetById(loginUser, id, preloadSlice...)
 	if err != nil {

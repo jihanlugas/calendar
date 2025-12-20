@@ -2,11 +2,12 @@ package user
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/utils"
 	"gorm.io/gorm"
-	"strings"
 )
 
 type Repository interface {
@@ -116,9 +117,11 @@ func (r repository) Delete(conn *gorm.DB, tUser model.User) error {
 func (r repository) Page(conn *gorm.DB, req request.PageUser) (vUsers []model.UserView, count int64, err error) {
 	query := conn.Model(&vUsers)
 
-	preloads := strings.Split(req.Preloads, ",")
-	for _, preload := range preloads {
-		query = query.Preload(preload)
+	if req.Preloads != "" {
+		preloads := strings.Split(req.Preloads, ",")
+		for _, preload := range preloads {
+			query = query.Preload(preload)
+		}
 	}
 
 	// query

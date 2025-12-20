@@ -89,8 +89,11 @@ func (h Handler) GetById(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
 	}
 
+	preloadSlice := []string{}
 	preloads := c.QueryParam("preloads")
-	preloadSlice := strings.Split(preloads, ",")
+	if preloads != "" {
+		preloadSlice = strings.Split(preloads, ",")
+	}
 
 	vProperty, err := h.usecase.GetById(loginUser, id, preloadSlice...)
 	if err != nil {

@@ -28,12 +28,3 @@ type CreatePropertyPropertytimeline struct {
 	Description string `json:"description" form:"description" query:"description" validate:""`
 }
 
-//type CreatePropertytimeline struct {
-//	DefaultStartDtValue int            `json:"defaultStartDtValue" form:"defaultStartDtValue" query:"defaultStartDtValue" validate:"required"`
-//	DefaultStartDtUnit  model.TimeUnit `json:"defaultStartDtUnit" form:"defaultStartDtUnit" query:"defaultStartDtUnit" validate:"required"`
-//	DefaultEndDtValue   int            `json:"defaultEndDtValue" form:"defaultEndDtValue" query:"defaultEndDtValue" validate:"required"`
-//	DefaultEndDtUnit    model.TimeUnit `json:"defaultEndDtUnit" form:"defaultEndDtUnit" query:"defaultEndDtUnit" validate:"required"`
-//	MinZoomTimelineHour int            `json:"minZoomTimelineHour" form:"minZoomTimelineHour" query:"minZoomTimelineHour" validate:"required"`
-//	MaxZoomTimelineHour int            `json:"maxZoomTimelineHour" form:"maxZoomTimelineHour" query:"maxZoomTimelineHour" validate:"required"`
-//	DragSnapMin         int            `json:"dragSnapMin" form:"dragSnapMin" query:"dragSnapMin" validate:"required"`
-//}

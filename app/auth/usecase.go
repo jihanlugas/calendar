@@ -118,7 +118,7 @@ func (u usecase) Init(userLogin jwt.UserLogin) (vUser model.UserView, err error)
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
 
-	userPreloads := []string{"Company", "Company.Properties", "Company.Properties.Propertytimeline", "Company.Properties.Units", "Usercompanies", "Usercompanies.Company"}
+	userPreloads := []string{"Company", "Company.Properties", "Company.Properties.Propertytimeline", "Company.Properties.Units", "Usercompanies", "Usercompanies.Company", "Usercompanies.User"}
 	vUser, err = u.userRepository.GetViewById(conn, userLogin.UserID, userPreloads...)
 	if err != nil {
 		return vUser, err

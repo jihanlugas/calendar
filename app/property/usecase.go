@@ -93,14 +93,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 	}
 
 	tPropertytimeline = model.Propertytimeline{
-		ID: tProperty.ID,
-		//DefaultStartDtValue: req.DefaultStartDtValue,
-		//DefaultStartDtUnit:  req.DefaultStartDtUnit,
-		//DefaultEndDtValue:   req.DefaultEndDtValue,
-		//DefaultEndDtUnit:    req.DefaultEndDtUnit,
-		//MinZoomTimelineHour: req.MinZoomTimelineHour,
-		//MaxZoomTimelineHour: req.MaxZoomTimelineHour,
-		//DragSnapMin:         req.DragSnapMin,
+		ID:       tProperty.ID,
 		CreateBy: loginUser.UserID,
 		UpdateBy: loginUser.UserID,
 	}

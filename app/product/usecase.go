@@ -3,6 +3,7 @@ package product
 import (
 	"errors"
 	"fmt"
+
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
