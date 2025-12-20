@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/jihanlugas/calendar/constant"
-	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -110,7 +109,7 @@ type Propertyprice struct {
 	CompanyID  string         `gorm:"not null"`
 	PropertyID string         `gorm:"not null"`
 	Priority   int            `gorm:"not null"`
-	Weekdays   pq.Int32Array  `gorm:"type:int[];not null"`
+	Weekdays   Int32Array     `gorm:"type:int[];not null"`
 	StartTime  *time.Time     `gorm:"null"`
 	EndTime    *time.Time     `gorm:"null"`
 	Price      int64          `gorm:"not null"`
@@ -123,10 +122,6 @@ type Propertyprice struct {
 
 type Propertytimeline struct {
 	ID                  string         `gorm:"primaryKey"`
-	DefaultStartDtValue int            `gorm:"not null;default:6"`
-	DefaultStartDtUnit  TimeUnit       `gorm:"not null;default:Hour"`
-	DefaultEndDtValue   int            `gorm:"not null;default:6"`
-	DefaultEndDtUnit    TimeUnit       `gorm:"not null;default:Hour"`
 	MinZoomTimelineHour int            `gorm:"not null;default:6"`
 	MaxZoomTimelineHour int            `gorm:"not null;default:24"`
 	DragSnapMin         int            `gorm:"not null;default:30"`

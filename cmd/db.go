@@ -12,7 +12,6 @@ import (
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/utils"
-	"github.com/lib/pq"
 	"gorm.io/gorm"
 )
 
@@ -512,25 +511,17 @@ func dbSeed() {
 	propertytimelines := []model.Propertytimeline{
 		{
 			ID:                  property1ID,
-			DefaultStartDtValue: 6,
-			DefaultStartDtUnit:  model.TimeUnitHour,
-			DefaultEndDtValue:   6,
-			DefaultEndDtUnit:    model.TimeUnitHour,
 			MinZoomTimelineHour: 6,
 			MaxZoomTimelineHour: 7 * 24, // 7 Hari
-			DragSnapMin:         15,     // 15 Minutes
+			DragSnapMin:         30,     // 30 Minutes
 			CreateBy:            adminID,
 			UpdateBy:            adminID,
 		},
 		{
 			ID:                  property2ID,
-			DefaultStartDtValue: 1,
-			DefaultStartDtUnit:  model.TimeUnitDay,
-			DefaultEndDtValue:   1,
-			DefaultEndDtUnit:    model.TimeUnitDay,
 			MinZoomTimelineHour: 6,
 			MaxZoomTimelineHour: 7 * 24, // 7 Hari
-			DragSnapMin:         15,     // 15 Minutes
+			DragSnapMin:         30,     // 30 Minutes
 			CreateBy:            adminID,
 			UpdateBy:            adminID,
 		},
@@ -544,7 +535,7 @@ func dbSeed() {
 			CompanyID:  companyID,
 			PropertyID: property1ID,
 			Priority:   1,
-			Weekdays:   pq.Int32Array{0, 1, 2, 3, 4, 5, 6},
+			Weekdays:   model.Int32Array{0, 1, 2, 3, 4, 5, 6},
 			StartTime:  nil,
 			EndTime:    nil,
 			Price:      10,
@@ -555,7 +546,7 @@ func dbSeed() {
 			CompanyID:  companyID,
 			PropertyID: property1ID,
 			Priority:   2,
-			Weekdays:   pq.Int32Array{0, 6},
+			Weekdays:   model.Int32Array{0, 6},
 			StartTime:  &startTime,
 			EndTime:    &endTime,
 			Price:      100,
@@ -566,7 +557,7 @@ func dbSeed() {
 			CompanyID:  companyID,
 			PropertyID: property2ID,
 			Priority:   1,
-			Weekdays:   pq.Int32Array{0, 1, 2, 3, 4, 5, 6},
+			Weekdays:   model.Int32Array{0, 1, 2, 3, 4, 5, 6},
 			StartTime:  nil,
 			EndTime:    nil,
 			Price:      1000,
@@ -577,7 +568,7 @@ func dbSeed() {
 			CompanyID:  companyID,
 			PropertyID: property2ID,
 			Priority:   2,
-			Weekdays:   pq.Int32Array{0, 6},
+			Weekdays:   model.Int32Array{0, 6},
 			StartTime:  &startTime,
 			EndTime:    &endTime,
 			Price:      10000,

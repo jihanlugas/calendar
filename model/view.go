@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/jihanlugas/calendar/constant"
-	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -35,7 +34,7 @@ type UserView struct {
 	CreateName        string         `json:"createName"`
 	UpdateName        string         `json:"updateName"`
 
-	Company       *CompanyView      `json:"company,omitempty"`
+	Company       *CompanyView      `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
 	Usercompanies []UsercompanyView `json:"usercompanies,omitempty" gorm:"foreignKey:UserID"`
 }
 
@@ -87,8 +86,8 @@ type UsercompanyView struct {
 	CreateName       string         `json:"createName"`
 	UpdateName       string         `json:"updateName"`
 
-	User    *UserView    `json:"user,omitempty"`
-	Company *CompanyView `json:"company,omitempty"`
+	User    *UserView    `json:"user,omitempty" gorm:"foreignKey:UserID"`
+	Company *CompanyView `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
 }
 
 func (UsercompanyView) TableName() string {
@@ -111,10 +110,11 @@ type PropertyView struct {
 	CreateName  string         `json:"createName"`
 	UpdateName  string         `json:"updateName"`
 
-	Company          *CompanyView          `json:"company,omitempty"`
+	Company          *CompanyView          `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
 	Propertytimeline *PropertytimelineView `json:"propertytimeline,omitempty" gorm:"foreignKey:ID"`
 	Units            []UnitView            `json:"units" gorm:"foreignKey:PropertyID"`
 	Events           []EventView           `json:"events" gorm:"foreignKey:PropertyID"`
+	Propertyprices   []PropertypriceView   `json:"propertyprices" gorm:"foreignKey:PropertyID"`
 }
 
 func (PropertyView) TableName() string {
@@ -126,7 +126,7 @@ type PropertypriceView struct {
 	CompanyID    string         `json:"companyId"`
 	PropertyID   string         `json:"propertyId"`
 	Priority     int            `json:"priority"`
-	Weekdays     datatypes.JSON `json:"weekdays"`
+	Weekdays     Int32Array     `json:"weekdays" gorm:"type:int[]"`
 	StartTime    *time.Time     `json:"startTime"`
 	EndTime      *time.Time     `json:"endTime"`
 	Price        int64          `json:"price"`
@@ -140,8 +140,8 @@ type PropertypriceView struct {
 	CreateName   string         `json:"createName"`
 	UpdateName   string         `json:"updateName"`
 
-	Company  *CompanyView  `json:"company,omitempty"`
-	Property *PropertyView `json:"property,omitempty"`
+	Company  *CompanyView  `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Property *PropertyView `json:"property,omitempty" gorm:"foreignKey:PropertyID"`
 }
 
 func (PropertypriceView) TableName() string {
@@ -150,10 +150,6 @@ func (PropertypriceView) TableName() string {
 
 type PropertytimelineView struct {
 	ID                  string         `json:"id"`
-	DefaultStartDtValue int            `json:"defaultStartDtValue"`
-	DefaultStartDtUnit  TimeUnit       `json:"defaultStartDtUnit"`
-	DefaultEndDtValue   int            `json:"defaultEndDtValue"`
-	DefaultEndDtUnit    TimeUnit       `json:"defaultEndDtUnit"`
 	MinZoomTimelineHour int            `json:"minZoomTimelineHour"`
 	MaxZoomTimelineHour int            `json:"maxZoomTimelineHour"`
 	DragSnapMin         int            `json:"dragSnapMin"`
@@ -188,8 +184,8 @@ type UnitView struct {
 	CreateName   string         `json:"createName"`
 	UpdateName   string         `json:"updateName"`
 
-	Company  *CompanyView  `json:"company,omitempty"`
-	Property *PropertyView `json:"property,omitempty"`
+	Company  *CompanyView  `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Property *PropertyView `json:"property,omitempty" gorm:"foreignKey:PropertyID"`
 	Events   []EventView   `json:"events,omitempty" gorm:"foreignKey:UnitID"`
 }
 
@@ -219,8 +215,8 @@ type EventView struct {
 	CreateName   string               `json:"createName"`
 	UpdateName   string               `json:"updateName"`
 
-	Company  *CompanyView  `json:"company,omitempty"`
-	Property *PropertyView `json:"property,omitempty"`
+	Company  *CompanyView  `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Property *PropertyView `json:"property,omitempty" gorm:"foreignKey:PropertyID"`
 	Unit     *UnitView     `json:"unit,omitempty"`
 }
 
@@ -247,7 +243,7 @@ type ProductView struct {
 	CreateName  string         `json:"createName"`
 	UpdateName  string         `json:"updateName"`
 
-	Company *CompanyView `json:"company,omitempty"`
+	Company *CompanyView `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
 }
 
 func (ProductView) TableName() string {
@@ -270,9 +266,9 @@ type TransactionView struct {
 	CreateName   string         `json:"createName"`
 	UpdateName   string         `json:"updateName"`
 
-	Company            *CompanyView             `json:"company,omitempty"`
-	Transactionevents  []TransactioneventView   `json:"transactionevents,omitempty" gorm:"foreignKey:TransactionID"`
-	Transactionproduct []TransactionproductView `json:"transactionproducts,omitempty" gorm:"foreignKey:TransactionID"`
+	Company             *CompanyView             `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Transactionevents   []TransactioneventView   `json:"transactionevents,omitempty" gorm:"foreignKey:TransactionID"`
+	Transactionproducts []TransactionproductView `json:"transactionproducts,omitempty" gorm:"foreignKey:TransactionID"`
 }
 
 func (TransactionView) TableName() string {
@@ -295,9 +291,9 @@ type TransactioneventView struct {
 	CreateName    string         `json:"createName"`
 	UpdateName    string         `json:"updateName"`
 
-	Company     *CompanyView     `json:"company,omitempty"`
-	Transaction *TransactionView `json:"transaction,omitempty"`
-	Event       *EventView       `json:"event,omitempty"`
+	Company     *CompanyView     `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Transaction *TransactionView `json:"transaction,omitempty" gorm:"foreignKey:TransactionID"`
+	Event       *EventView       `json:"event,omitempty" gorm:"foreignKey:EventID"`
 }
 
 func (TransactioneventView) TableName() string {
@@ -322,10 +318,10 @@ type TransactionproductView struct {
 	CreateName    string         `json:"createName"`
 	UpdateName    string         `json:"updateName"`
 
-	Company     *CompanyView     `json:"company,omitempty"`
-	Transaction *TransactionView `json:"transaction,omitempty"`
-	Event       *EventView       `json:"event,omitempty"`
-	Product     *ProductView     `json:"product,omitempty"`
+	Company     *CompanyView     `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Transaction *TransactionView `json:"transaction,omitempty" gorm:"foreignKey:TransactionID"`
+	Event       *EventView       `json:"event,omitempty" gorm:"foreignKey:EventID"`
+	Product     *ProductView     `json:"product,omitempty" gorm:"foreignKey:ProductID"`
 }
 
 func (TransactionproductView) TableName() string {
