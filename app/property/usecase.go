@@ -196,7 +196,6 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 }
 
 func (u usecase) GetPrice(req request.GetPrice) (price int64, err error) {
-
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
 

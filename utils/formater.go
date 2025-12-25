@@ -105,6 +105,10 @@ func DisplayDatetime(date time.Time) string {
 	return date.Format(constant.FormatDatetimeLayout)
 }
 
+func DisplayTime(date time.Time) string {
+	return date.Format(constant.FormatTimeLayout)
+}
+
 func DisplayBool(data bool, trueText string, falseText string) string {
 	if data {
 		return trueText
