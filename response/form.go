@@ -3,9 +3,10 @@ package response
 import (
 	"errors"
 	"fmt"
-	"github.com/jihanlugas/calendar/config"
 	"reflect"
 	"strings"
+
+	"github.com/jihanlugas/calendar/config"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -79,26 +80,6 @@ func getFieldError(str ...string) interface{} {
 			Msg:   strings.ReplaceAll(str[2], "_", " "),
 		}
 	case ErrorFormUppercase:
-		return FieldError{
-			Field: str[0],
-			Msg:   strings.ReplaceAll(str[2], "_", " "),
-		}
-	case ErrorFormHiragana:
-		return FieldError{
-			Field: str[0],
-			Msg:   strings.ReplaceAll(str[2], "_", " "),
-		}
-	case ErrorFormKatakana:
-		return FieldError{
-			Field: str[0],
-			Msg:   strings.ReplaceAll(str[2], "_", " "),
-		}
-	case ErrorFormKana:
-		return FieldError{
-			Field: str[0],
-			Msg:   strings.ReplaceAll(str[2], "_", " "),
-		}
-	case ErrorFormKanji:
 		return FieldError{
 			Field: str[0],
 			Msg:   strings.ReplaceAll(str[2], "_", " "),

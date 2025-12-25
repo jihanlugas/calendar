@@ -63,7 +63,7 @@ func (h Handler) Page(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, response.PayloadPagination(req, data, count)).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully retrieved property list", response.PayloadPagination(req, data, count)).SendJSON(c)
 }
 
 // GetById
@@ -100,7 +100,7 @@ func (h Handler) GetById(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, vProperty).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully retrieved property detail", vProperty).SendJSON(c)
 }
 
 // Create
@@ -141,7 +141,7 @@ func (h Handler) Create(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully created property", nil).SendJSON(c)
 }
 
 // Update
@@ -184,7 +184,7 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully updated property", nil).SendJSON(c)
 }
 
 // Delete
@@ -214,7 +214,7 @@ func (h Handler) Delete(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully deleted property", nil).SendJSON(c)
 }
 
 // GetPrice
@@ -246,5 +246,5 @@ func (h Handler) GetPrice(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, price).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully calculated property price", price).SendJSON(c)
 }

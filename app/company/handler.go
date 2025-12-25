@@ -63,5 +63,5 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully updated company", nil).SendJSON(c)
 }

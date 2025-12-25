@@ -63,7 +63,7 @@ func (h Handler) Page(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, response.PayloadPagination(req, data, count)).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully retrieved unit list", response.PayloadPagination(req, data, count)).SendJSON(c)
 }
 
 // GetById
@@ -100,7 +100,7 @@ func (h Handler) GetById(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, vUnit).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully retrieved unit detail", vUnit).SendJSON(c)
 }
 
 // Create
@@ -141,7 +141,7 @@ func (h Handler) Create(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully created unit", nil).SendJSON(c)
 }
 
 // Update
@@ -184,7 +184,7 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully updated unit", nil).SendJSON(c)
 }
 
 // Delete
@@ -214,5 +214,5 @@ func (h Handler) Delete(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully deleted unit", nil).SendJSON(c)
 }

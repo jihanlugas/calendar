@@ -47,7 +47,7 @@ func (h Handler) SignIn(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, response.Payload{
+	return response.Success(http.StatusOK, "Successfully signed in", response.Payload{
 		"token":     token,
 		"userLogin": userLogin,
 	}).SendJSON(c)
@@ -62,7 +62,7 @@ func (h Handler) SignIn(c echo.Context) error {
 // @Failure      500  {object}  response.Response
 // @Router /auth/sign-out [get]
 func (h Handler) SignOut(c echo.Context) error {
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully signed out", nil).SendJSON(c)
 }
 
 // RefreshToken
@@ -86,7 +86,7 @@ func (h Handler) RefreshToken(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, response.Payload{
+	return response.Success(http.StatusOK, "Successfully refreshed token", response.Payload{
 		"token": token,
 	}).SendJSON(c)
 }
@@ -116,5 +116,5 @@ func (h Handler) Init(c echo.Context) error {
 		User: user,
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, res).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully initialized", res).SendJSON(c)
 }

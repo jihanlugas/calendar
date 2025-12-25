@@ -63,7 +63,7 @@ func (h Handler) Page(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, response.PayloadPagination(req, data, count)).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully retrieved product list", response.PayloadPagination(req, data, count)).SendJSON(c)
 }
 
 // GetById
@@ -100,7 +100,7 @@ func (h Handler) GetById(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, vProduct).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully retrieved product detail", vProduct).SendJSON(c)
 }
 
 // Create
@@ -141,7 +141,7 @@ func (h Handler) Create(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully created product", nil).SendJSON(c)
 }
 
 // Update
@@ -184,7 +184,7 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully updated product", nil).SendJSON(c)
 }
 
 // Delete
@@ -214,5 +214,5 @@ func (h Handler) Delete(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, response.SuccessHandler, nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully deleted product", nil).SendJSON(c)
 }

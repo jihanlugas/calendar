@@ -2,14 +2,12 @@ package response
 
 import (
 	"encoding/json"
+
 	"github.com/jihanlugas/calendar/config"
 	"github.com/labstack/echo/v4"
 )
 
 const (
-	// Success Handler
-	SuccessHandler = "success"
-
 	// Error General
 	ErrorInternalServer = "internal server error"
 	ErrorUnauthorized   = "unauthorized"
@@ -42,10 +40,6 @@ const (
 	ErrorFormPhoto            = "error_form_photo"
 	ErrorFormLowercase        = "error_form_lowercase"
 	ErrorFormUppercase        = "error_form_uppercase"
-	ErrorFormHiragana         = "error_form_hiragana"
-	ErrorFormKatakana         = "error_form_katakana"
-	ErrorFormKana             = "error_form_kana"
-	ErrorFormKanji            = "error_form_kanji"
 	ErrorFormNotMatch         = "error_form_not_match"
 	ErrorFormInvalidValue     = "error_form_invalid_value"
 )
@@ -110,7 +104,7 @@ func (r *Response) SendJSON(c echo.Context) error {
 		panic(err)
 	} else {
 		//c.Set(constant.Response, js)
-		return c.Blob(r.Code, echo.MIMEApplicationJSONCharsetUTF8, js)
+		return c.Blob(r.Code, echo.MIMEApplicationJSON, js)
 	}
 }
 
