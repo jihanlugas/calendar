@@ -84,7 +84,7 @@ func (h Handler) GetById(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
 	}
 
-	id := c.Param("id")
+	id := strings.TrimSpace(c.Param("id"))
 	if id == "" {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
 	}
@@ -162,7 +162,7 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
 	}
 
-	id := c.Param("id")
+	id := strings.TrimSpace(c.Param("id"))
 	if id == "" {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
 	}
@@ -204,7 +204,7 @@ func (h Handler) Delete(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
 	}
 
-	id := c.Param("id")
+	id := strings.TrimSpace(c.Param("id"))
 	if id == "" {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
 	}

@@ -46,7 +46,7 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 
 	vProduct, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
-		return vProduct, errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return vProduct, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, vProduct.CompanyID) {
@@ -81,7 +81,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProduct) erro
 
 	err = u.repository.Create(tx, tProduct)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -101,7 +101,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 
 	tProduct, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, tProduct.CompanyID) {
@@ -116,7 +116,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 	tProduct.UpdateBy = loginUser.UserID
 	err = u.repository.Save(tx, tProduct)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to update %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -136,7 +136,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	tProduct, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, tProduct.CompanyID) {
@@ -147,7 +147,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	err = u.repository.Delete(tx, tProduct)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to delete %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error

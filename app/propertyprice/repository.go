@@ -20,6 +20,7 @@ type Repository interface {
 	Save(conn *gorm.DB, tPropertyprice model.Propertyprice) error
 	Delete(conn *gorm.DB, tPropertyprice model.Propertyprice) error
 	GetPrice(conn *gorm.DB, req request.GetPrice) (price int64, err error)
+	CountByPropertyID(conn *gorm.DB, propertyID string) (count int64, err error)
 }
 
 type repository struct {
@@ -122,6 +123,11 @@ func (r repository) GetPrice(conn *gorm.DB, req request.GetPrice) (int64, error)
 	}
 
 	return totalPrice, nil
+}
+
+func (r repository) CountByPropertyID(conn *gorm.DB, propertyID string) (count int64, err error) {
+	err = conn.Model(&model.Propertyprice{}).Where("property_id = ?", propertyID).Count(&count).Error
+	return count, err
 }
 
 func contains(arr []int32, v int32) bool {

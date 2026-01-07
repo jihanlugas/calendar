@@ -1,12 +1,14 @@
 package company
 
 import (
+	"net/http"
+	"strings"
+
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 type Handler struct {
@@ -37,7 +39,7 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
 	}
 
-	id := c.Param("id")
+	id := strings.TrimSpace(c.Param("id"))
 	if id == "" {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
 	}

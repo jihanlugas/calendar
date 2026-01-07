@@ -1,4 +1,4 @@
-package product
+package propertyprice
 
 import (
 	"net/http"
@@ -21,61 +21,15 @@ func NewHandler(usecase Usecase) Handler {
 	}
 }
 
-// Page
-// @Tags Product
-// @Security BearerAuth
-// @Accept json
-// @Produce json
-// @Param req query request.PageProduct false "url query string"
-// @Success      200  {object}	response.Response
-// @Failure      500  {object}  response.Response
-// @Router /product [get]
-func (h Handler) Page(c echo.Context) error {
-	var err error
-
-	loginUser, err := jwt.GetUserLoginInfo(c)
-	if err != nil {
-		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
-	}
-
-	req := new(request.PageProduct)
-	if err = c.Bind(req); err != nil {
-		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
-	}
-
-	utils.TrimWhitespace(req)
-
-	err = c.Validate(req)
-	if err != nil {
-		return response.Error(http.StatusBadRequest, response.ErrorHandlerFailedValidation, err, response.ValidationError(err)).SendJSON(c)
-	}
-
-	if req.CompanyID == "" {
-		req.CompanyID = loginUser.CompanyID
-	} else {
-		if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-			return response.Error(http.StatusBadRequest, response.ErrorHandlerIDOR, err, nil).SendJSON(c)
-		}
-	}
-
-	data, count, err := h.usecase.Page(loginUser, *req)
-	if err != nil {
-		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
-	}
-
-	return response.Success(http.StatusOK, "Successfully retrieved product list", response.PayloadPagination(req, data, count)).SendJSON(c)
-}
-
 // GetById
-// @Tags Product
+// @Tags Propertyprice
 // @Security BearerAuth
 // @Accept json
 // @Produce json
-// @Param id path string true "ID"
-// @Query preloads query string false "preloads"
+// @Param id path string true "Propertyprice ID"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /product/{id} [get]
+// @Router /propertyprice/{id} [get]
 func (h Handler) GetById(c echo.Context) error {
 	var err error
 
@@ -95,23 +49,23 @@ func (h Handler) GetById(c echo.Context) error {
 		preloadSlice = strings.Split(preloads, ",")
 	}
 
-	vProduct, err := h.usecase.GetById(loginUser, id, preloadSlice...)
+	vPropertyprice, err := h.usecase.GetById(loginUser, id, preloadSlice...)
 	if err != nil {
-		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
+		return response.Error(http.StatusInternalServerError, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, "Successfully retrieved product detail", vProduct).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully retrieved propertyprice", vPropertyprice).SendJSON(c)
 }
 
 // Create
-// @Tags Product
+// @Tags Propertyprice
 // @Security BearerAuth
 // @Accept json
 // @Produce json
-// @Param req body request.CreateProduct true "json req body"
+// @Param req body request.CreatePropertyprice true "json req body"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /product [post]
+// @Router /propertyprice [post]
 func (h Handler) Create(c echo.Context) error {
 	var err error
 
@@ -120,7 +74,7 @@ func (h Handler) Create(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
 	}
 
-	req := new(request.CreateProduct)
+	req := new(request.CreatePropertyprice)
 	if err = c.Bind(req); err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
@@ -138,22 +92,22 @@ func (h Handler) Create(c echo.Context) error {
 
 	err = h.usecase.Create(loginUser, *req)
 	if err != nil {
-		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
+		return response.Error(http.StatusInternalServerError, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, "Successfully created product", nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully created propertyprice", nil).SendJSON(c)
 }
 
 // Update
-// @Tags Product
+// @Tags Propertyprice
 // @Security BearerAuth
 // @Accept json
 // @Produce json
-// @Param id path string true "ID"
-// @Param req body request.UpdateProduct true "json req body"
+// @Param id path string true "Propertyprice ID"
+// @Param req body request.UpdatePropertyprice true "json req body"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /product/{id} [put]
+// @Router /propertyprice/{id} [put]
 func (h Handler) Update(c echo.Context) error {
 	var err error
 
@@ -167,7 +121,7 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
 	}
 
-	req := new(request.UpdateProduct)
+	req := new(request.UpdatePropertyprice)
 	if err = c.Bind(req); err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
@@ -181,21 +135,21 @@ func (h Handler) Update(c echo.Context) error {
 
 	err = h.usecase.Update(loginUser, id, *req)
 	if err != nil {
-		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
+		return response.Error(http.StatusInternalServerError, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, "Successfully updated product", nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully updated propertyprice", nil).SendJSON(c)
 }
 
 // Delete
-// @Tags Product
+// @Tags Propertyprice
 // @Security BearerAuth
 // @Accept json
 // @Produce json
-// @Param id path string true "ID"
+// @Param id path string true "Propertyprice ID"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /product/{id} [delete]
+// @Router /propertyprice/{id} [delete]
 func (h Handler) Delete(c echo.Context) error {
 	var err error
 
@@ -211,8 +165,8 @@ func (h Handler) Delete(c echo.Context) error {
 
 	err = h.usecase.Delete(loginUser, id)
 	if err != nil {
-		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
+		return response.Error(http.StatusInternalServerError, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, "Successfully deleted product", nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully deleted propertyprice", nil).SendJSON(c)
 }

@@ -4,11 +4,12 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/jihanlugas/calendar/response"
-	"github.com/labstack/echo/v4"
 	"image/png"
 	"net/http"
 	"strings"
+
+	"github.com/jihanlugas/calendar/response"
+	"github.com/labstack/echo/v4"
 )
 
 type Handler struct {
@@ -34,7 +35,7 @@ func NewHandler(usecase Usecase) Handler {
 func (h Handler) GetById(c echo.Context) error {
 	var err error
 
-	id := c.Param("id")
+	id := strings.TrimSpace(c.Param("id"))
 	if id == "" {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
 	}

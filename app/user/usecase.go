@@ -3,6 +3,8 @@ package user
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/jihanlugas/calendar/app/usercompany"
 	"github.com/jihanlugas/calendar/constant"
 	"github.com/jihanlugas/calendar/cryption"
@@ -13,7 +15,6 @@ import (
 	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 	"gorm.io/gorm"
-	"time"
 )
 
 type Usecase interface {
@@ -52,12 +53,12 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 
 	vUser, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
-		return vUser, errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return vUser, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	vUsercompany, err := u.repositoryCompany.GetViewByUserIdAndCompanyId(conn, vUser.ID, loginUser.CompanyID)
 	if err != nil {
-		return vUser, errors.New(fmt.Sprintf("failed to get %s: %v", u.repositoryCompany.Name(), err))
+		return vUser, fmt.Errorf("failed to get %s: %v", u.repositoryCompany.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, vUsercompany.CompanyID) {
@@ -80,7 +81,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
 
 	encodePasswd, err := cryption.EncryptAES64(req.Passwd)
 	if err != nil {
-		return errors.New(fmt.Sprint("failed to encode password: ", err))
+		return fmt.Errorf("failed to encode password: %v", err)
 	}
 
 	tUser = model.User{
@@ -105,7 +106,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
 
 	err = u.repository.Create(tx, tUser)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
 
 	tUsercompany := model.Usercompany{
@@ -119,7 +120,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
 	}
 	err = u.repositoryCompany.Create(tx, tUsercompany)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repositoryCompany.Name(), err))
+		return fmt.Errorf("failed to create %s: %v", u.repositoryCompany.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -139,12 +140,12 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUs
 
 	tUser, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	vUsercompany, err := u.repositoryCompany.GetViewByUserIdAndCompanyId(conn, tUser.ID, loginUser.CompanyID)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to update %s: %v", u.repositoryCompany.Name(), err))
+		return fmt.Errorf("failed to update %s: %v", u.repositoryCompany.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, vUsercompany.CompanyID) {
@@ -185,7 +186,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUs
 	tUser.UpdateBy = loginUser.UserID
 	err = u.repository.Save(tx, tUser)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to update %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -205,19 +206,19 @@ func (u usecase) ChangePassword(loginUser jwt.UserLogin, req request.ChangePassw
 
 	tUser, err = u.repository.GetTableById(conn, loginUser.UserID)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	tx := conn.Begin()
 
 	err = cryption.CheckAES64(req.CurrentPasswd, tUser.Passwd)
 	if err != nil {
-		return errors.New(fmt.Sprint("invalid current password"))
+		return fmt.Errorf("invalid current password")
 	}
 
 	encodePasswd, err := cryption.EncryptAES64(req.Passwd)
 	if err != nil {
-		return errors.New(fmt.Sprint("failed to encode password: ", err))
+		return fmt.Errorf("failed to encode password: %v", err)
 	}
 
 	tUser.Passwd = encodePasswd
@@ -225,7 +226,7 @@ func (u usecase) ChangePassword(loginUser jwt.UserLogin, req request.ChangePassw
 	tUser.UpdateBy = loginUser.UserID
 	err = u.repository.Save(tx, tUser)
 	if err != nil {
-		return errors.New(fmt.Sprint("failed to update password: ", err))
+		return fmt.Errorf("failed to update password: %v", err)
 	}
 
 	err = tx.Commit().Error
@@ -245,12 +246,12 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	tUser, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	vUsercompany, err := u.repositoryCompany.GetViewByUserIdAndCompanyId(conn, tUser.ID, loginUser.CompanyID)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repositoryCompany.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repositoryCompany.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, vUsercompany.CompanyID) {
@@ -261,7 +262,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	err = u.repository.Delete(tx, tUser)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error

@@ -60,6 +60,7 @@ func Init() *echo.Echo {
 	propertyUsecase := property.NewUsecase(propertyRepository, propertytimelineRepository, unitRepository, propertypriceRepository)
 	unitUsecase := unit.NewUsecase(unitRepository)
 	eventUsecase := event.NewUsecase(eventRepository)
+	propertypriceUsecase := propertyprice.NewUsecase(propertypriceRepository)
 
 	// handlers
 	authHandler := auth.NewHandler(authUsecase)
@@ -71,6 +72,7 @@ func Init() *echo.Echo {
 	unitHandler := unit.NewHandler(unitUsecase)
 	eventHandler := event.NewHandler(eventUsecase)
 	websocketHandler := websocket.NewHandler(hubManager)
+	propertypriceHandler := propertyprice.NewHandler(propertypriceUsecase)
 
 	if config.Debug {
 		router.GET("/", func(c echo.Context) error {
@@ -106,6 +108,12 @@ func Init() *echo.Echo {
 	routerProperty.GET("/:id", propertyHandler.GetById)
 	routerProperty.DELETE("/:id", propertyHandler.Delete)
 	routerProperty.POST("/get-price", propertyHandler.GetPrice)
+
+	routerPropertyprice := router.Group("/propertyprice", checkTokenMiddleware)
+	routerPropertyprice.GET("/:id", propertypriceHandler.GetById)
+	routerPropertyprice.POST("", propertypriceHandler.Create)
+	routerPropertyprice.PUT("/:id", propertypriceHandler.Update)
+	routerPropertyprice.DELETE("/:id", propertypriceHandler.Delete)
 
 	routerProduct := router.Group("/product", checkTokenMiddleware)
 	routerProduct.GET("", productHandler.Page)
@@ -170,10 +178,10 @@ func httpErrorHandler(err error, c echo.Context) {
 
 	js, err := json.Marshal(errorResponse)
 	if err == nil {
-		_ = c.Blob(code, echo.MIMEApplicationJSONCharsetUTF8, js)
+		_ = c.Blob(code, echo.MIMEApplicationJSON, js)
 	} else {
 		b := []byte("{status: false, code: 500, message: \"unresolved error\"}")
-		_ = c.Blob(code, echo.MIMEApplicationJSONCharsetUTF8, b)
+		_ = c.Blob(code, echo.MIMEApplicationJSON, b)
 	}
 }
 

@@ -1,5 +1,7 @@
 package request
 
+import "github.com/jihanlugas/calendar/model"
+
 type PageProperty struct {
 	Paging
 	CompanyID   string `json:"companyId" form:"companyId" query:"companyId"`
@@ -11,11 +13,17 @@ type PageProperty struct {
 }
 
 type CreateProperty struct {
-	CompanyID   string                           `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
-	Name        string                           `json:"name" form:"name" query:"name" validate:"required"`
-	Description string                           `json:"description" form:"description" query:"description" validate:""`
-	Units       []CreatePropertyPropertytimeline `json:"units" form:"units" query:"units" validate:"required"`
-	//CreatePropertytimeline
+	CompanyID      string                           `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
+	Name           string                           `json:"name" form:"name" query:"name" validate:"required"`
+	Description    string                           `json:"description" form:"description" query:"description" validate:""`
+	Units          []CreatePropertyPropertytimeline `json:"units" form:"units" query:"units" validate:"required"`
+	Propertyprices []CreatePropertyPropertyprice    `json:"propertyprices" form:"propertyprices" query:"propertyprices" validate:"required"`
+}
+
+type CreatePropertyPropertyprice struct {
+	Price    int64            `json:"price" validate:"required,min=0"`
+	Weekdays model.Int32Array `json:"weekdays" validate:"required,min=1,dive,oneof=0 1 2 3 4 5 6"`
+	Priority int              `json:"priority" validate:"required"`
 }
 
 type UpdateProperty struct {
@@ -27,4 +35,3 @@ type CreatePropertyPropertytimeline struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required"`
 	Description string `json:"description" form:"description" query:"description" validate:""`
 }
-

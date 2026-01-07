@@ -53,7 +53,7 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 
 	vProperty, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
-		return vProperty, errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return vProperty, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, vProperty.CompanyID) {
@@ -68,6 +68,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 	var tProperty model.Property
 	var tPropertytimeline model.Propertytimeline
 	var tUnits []model.Unit
+	var tPropertyprices []model.Propertyprice
 
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
@@ -89,7 +90,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 
 	err = u.repository.Create(tx, tProperty)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
 
 	tPropertytimeline = model.Propertytimeline{
@@ -100,7 +101,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 
 	err = u.repositoryPropertytimeline.Create(tx, tPropertytimeline)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err))
+		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err)
 	}
 
 	for _, unit := range req.Units {
@@ -119,7 +120,25 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 
 	err = u.repositoryUnit.Creates(tx, tUnits)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err))
+		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err)
+	}
+
+	for index, propertyprice := range req.Propertyprices {
+		tPropertyprice := model.Propertyprice{
+			PropertyID: tProperty.ID,
+			Price:      propertyprice.Price,
+			Weekdays:   propertyprice.Weekdays,
+			Priority:   len(req.Propertyprices) - index,
+			CreateBy:   loginUser.UserID,
+			UpdateBy:   loginUser.UserID,
+		}
+
+		tPropertyprices = append(tPropertyprices, tPropertyprice)
+	}
+
+	err = u.repositoryPropertyprice.Creates(tx, tPropertyprices)
+	if err != nil {
+		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertyprice.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -139,7 +158,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 
 	tProperty, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, tProperty.CompanyID) {
@@ -153,7 +172,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 	tProperty.UpdateBy = loginUser.UserID
 	err = u.repository.Save(tx, tProperty)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to update %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -173,7 +192,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	tProperty, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, tProperty.CompanyID) {
@@ -184,7 +203,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	err = u.repository.Delete(tx, tProperty)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to delete %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
