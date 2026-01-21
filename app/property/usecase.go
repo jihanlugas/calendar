@@ -125,6 +125,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 
 	for index, propertyprice := range req.Propertyprices {
 		tPropertyprice := model.Propertyprice{
+			CompanyID:  req.CompanyID,
 			PropertyID: tProperty.ID,
 			Price:      propertyprice.Price,
 			Weekdays:   propertyprice.Weekdays,

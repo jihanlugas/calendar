@@ -63,6 +63,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertyprice
 		StartTime:  req.StartTime,
 		EndTime:    req.EndTime,
 		Priority:   int(countPropertyprices + 1),
+		CreateBy:   loginUser.UserID,
+		UpdateBy:   loginUser.UserID,
 	}
 
 	err = u.repository.Create(tx, tPropertyprice)
