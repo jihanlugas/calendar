@@ -528,8 +528,9 @@ func dbSeed() {
 	}
 	tx.Create(&propertytimelines)
 
-	startTime, _ := time.Parse(constant.FormatTimeLayout, "10:00") // jam 17 WIB
-	endTime, _ := time.Parse(constant.FormatTimeLayout, "16:00")   // jam 23 WIB
+	startTime := time.Date(1970, 1, 1, 17, 0, 0, 0, time.Local) // jam 17 WIB
+	endTime := time.Date(1970, 1, 1, 23, 0, 0, 0, time.Local)   // jam 23 WIB
+
 	propertyprices := []model.Propertyprice{
 		{
 			CompanyID:  companyID,

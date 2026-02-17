@@ -1,6 +1,10 @@
 package request
 
-import "github.com/jihanlugas/calendar/model"
+import (
+	"time"
+
+	"github.com/jihanlugas/calendar/model"
+)
 
 type PageProperty struct {
 	Paging
@@ -21,9 +25,11 @@ type CreateProperty struct {
 }
 
 type CreatePropertyPropertyprice struct {
-	Price    int64            `json:"price" validate:"required,min=0"`
-	Weekdays model.Int32Array `json:"weekdays" validate:"required,min=1,dive,oneof=0 1 2 3 4 5 6"`
-	Priority int              `json:"priority" validate:"required"`
+	Price     int64            `json:"price" validate:"required,min=0"`
+	Weekdays  model.Int32Array `json:"weekdays" validate:"required,min=1,dive,oneof=0 1 2 3 4 5 6"`
+	Priority  int              `json:"priority" validate:"required"`
+	StartTime *time.Time       `json:"startTime" validate:""`
+	EndTime   *time.Time       `json:"endTime" validate:""`
 }
 
 type UpdateProperty struct {

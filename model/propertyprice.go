@@ -29,9 +29,12 @@ func (m *Propertyprice) BeforeUpdate(tx *gorm.DB) (err error) {
 	return
 }
 
-//func (m *PropertypriceView) AfterFind(tx *gorm.DB) (err error) {
-//	if m.PhotoID != "" {
-//		m.PhotoUrl = fmt.Sprintf("%s/%s", config.FileBaseUrl, m.PhotoUrl)
-//	}
-//	return
-//}
+func (m *PropertypriceView) AfterFind(tx *gorm.DB) (err error) {
+	if m.StartTime != nil {
+		m.StartTimeFormated = m.StartTime.Format("15:04")
+	}
+	if m.EndTime != nil {
+		m.EndTimeFormated = m.EndTime.Format("15:04")
+	}
+	return
+}

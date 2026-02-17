@@ -122,23 +122,25 @@ func (PropertyView) TableName() string {
 }
 
 type PropertypriceView struct {
-	ID           string         `json:"id"`
-	CompanyID    string         `json:"companyId"`
-	PropertyID   string         `json:"propertyId"`
-	Priority     int            `json:"priority"`
-	Weekdays     Int32Array     `json:"weekdays" gorm:"type:int[]"`
-	StartTime    *time.Time     `json:"startTime"`
-	EndTime      *time.Time     `json:"endTime"`
-	Price        int64          `json:"price"`
-	CreateBy     string         `json:"createBy"`
-	CreateDt     time.Time      `json:"createDt"`
-	UpdateBy     string         `json:"updateBy"`
-	UpdateDt     time.Time      `json:"updateDt"`
-	DeleteDt     gorm.DeletedAt `json:"deleteDt"`
-	CompanyName  string         `json:"companyName"`
-	PropertyName string         `json:"propertyName"`
-	CreateName   string         `json:"createName"`
-	UpdateName   string         `json:"updateName"`
+	ID                string         `json:"id"`
+	CompanyID         string         `json:"companyId"`
+	PropertyID        string         `json:"propertyId"`
+	Priority          int            `json:"priority"`
+	Weekdays          Int32Array     `json:"weekdays" gorm:"type:int[]"`
+	StartTime         *time.Time     `json:"startTime"`
+	EndTime           *time.Time     `json:"endTime"`
+	Price             int64          `json:"price"`
+	CreateBy          string         `json:"createBy"`
+	CreateDt          time.Time      `json:"createDt"`
+	UpdateBy          string         `json:"updateBy"`
+	UpdateDt          time.Time      `json:"updateDt"`
+	DeleteDt          gorm.DeletedAt `json:"deleteDt"`
+	CompanyName       string         `json:"companyName"`
+	PropertyName      string         `json:"propertyName"`
+	CreateName        string         `json:"createName"`
+	UpdateName        string         `json:"updateName"`
+	StartTimeFormated string         `json:"startTimeFormatted"`
+	EndTimeFormated   string         `json:"endTimeFormatted"`
 
 	Company  *CompanyView  `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
 	Property *PropertyView `json:"property,omitempty" gorm:"foreignKey:PropertyID"`

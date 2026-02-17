@@ -127,6 +127,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 		tPropertyprice := model.Propertyprice{
 			CompanyID:  req.CompanyID,
 			PropertyID: tProperty.ID,
+			StartTime:  propertyprice.StartTime,
+			EndTime:    propertyprice.EndTime,
 			Price:      propertyprice.Price,
 			Weekdays:   propertyprice.Weekdays,
 			Priority:   len(req.Propertyprices) - index,
