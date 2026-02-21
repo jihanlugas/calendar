@@ -39,7 +39,8 @@ func (h Handler) Page(c echo.Context) error {
 	}
 
 	req := new(request.PageProperty)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 
@@ -121,7 +122,8 @@ func (h Handler) Create(c echo.Context) error {
 	}
 
 	req := new(request.CreateProperty)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 
@@ -168,7 +170,8 @@ func (h Handler) Update(c echo.Context) error {
 	}
 
 	req := new(request.UpdateProperty)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 
@@ -230,7 +233,8 @@ func (h Handler) GetPrice(c echo.Context) error {
 	var err error
 
 	req := new(request.GetPrice)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 
@@ -247,4 +251,48 @@ func (h Handler) GetPrice(c echo.Context) error {
 	}
 
 	return response.Success(http.StatusOK, "Successfully calculated property price", price).SendJSON(c)
+}
+
+// SortPropertyPrice
+// @Tags Property
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "ID"
+// @Param req body request.SortPropertyPrice true "json req body"
+// @Success      200  {object}	response.Response
+// @Failure      500  {object}  response.Response
+// @Router /property/{id}/sort-property-price [post]
+func (h Handler) SortPropertyPrice(c echo.Context) error {
+	var err error
+
+	loginUser, err := jwt.GetUserLoginInfo(c)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
+	}
+
+	id := strings.TrimSpace(c.Param("id"))
+	if id == "" {
+		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
+	}
+
+	req := new(request.SortPropertyPrice)
+	err = c.Bind(req)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
+	}
+
+	utils.TrimWhitespace(req)
+
+	err = c.Validate(req)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, response.ErrorHandlerFailedValidation, err, response.ValidationError(err)).SendJSON(c)
+	}
+
+	err = h.usecase.SortPropertyPrice(loginUser, id, *req)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
+	}
+
+	return response.Success(http.StatusOK, "Successfully sorted property price", nil).SendJSON(c)
 }

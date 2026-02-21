@@ -45,7 +45,8 @@ func (h Handler) Update(c echo.Context) error {
 	}
 
 	req := new(request.UpdateCompany)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 

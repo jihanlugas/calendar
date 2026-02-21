@@ -1,12 +1,13 @@
 package auth
 
 import (
+	"net/http"
+
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 	"github.com/labstack/echo/v4"
-	"net/http"
 )
 
 type Handler struct {
@@ -31,7 +32,8 @@ func (h Handler) SignIn(c echo.Context) error {
 	var err error
 
 	req := new(request.Signin)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 

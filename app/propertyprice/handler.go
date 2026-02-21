@@ -75,7 +75,8 @@ func (h Handler) Create(c echo.Context) error {
 	}
 
 	req := new(request.CreatePropertyprice)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 
@@ -122,7 +123,8 @@ func (h Handler) Update(c echo.Context) error {
 	}
 
 	req := new(request.UpdatePropertyprice)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 

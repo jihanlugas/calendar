@@ -22,6 +22,7 @@ type Usecase interface {
 	Update(loginUser jwt.UserLogin, id string, req request.UpdateProperty) error
 	Delete(loginUser jwt.UserLogin, id string) error
 	GetPrice(req request.GetPrice) (price int64, err error)
+	SortPropertyPrice(loginUser jwt.UserLogin, id string, req request.SortPropertyPrice) error
 }
 
 type usecase struct {
@@ -227,6 +228,49 @@ func (u usecase) GetPrice(req request.GetPrice) (price int64, err error) {
 	}
 
 	return
+}
+
+func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req request.SortPropertyPrice) error {
+	var err error
+	var tProperty model.Property
+
+	conn, closeConn := db.GetConnection()
+	defer closeConn()
+
+	tProperty, err = u.repository.GetTableById(conn, id)
+	if err != nil {
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
+	}
+
+	if jwt.IsSaveCompanyIDOR(loginUser, tProperty.CompanyID) {
+		return errors.New(response.ErrorHandlerIDOR)
+	}
+
+	tx := conn.Begin()
+
+	for _, propertyprice := range req.Propertyprices {
+		tPropertyprice, err := u.repositoryPropertyprice.GetTableById(tx, propertyprice.ID)
+		if err != nil {
+			return fmt.Errorf("failed to get %s: %v", u.repositoryPropertyprice.Name(), err)
+		}
+
+		if jwt.IsSaveCompanyIDOR(loginUser, tPropertyprice.CompanyID) {
+			return errors.New(response.ErrorHandlerIDOR)
+		}
+
+		tPropertyprice.Priority = propertyprice.Priority
+		err = u.repositoryPropertyprice.Save(tx, tPropertyprice)
+		if err != nil {
+			return fmt.Errorf("failed to update %s: %v", u.repositoryPropertyprice.Name(), err)
+		}
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewUsecase(repository Repository, repositoryPropertytimeline propertytimeline.Repository, repositoryUnit unit.Repository, repositoryPropertyprice propertyprice.Repository) Usecase {

@@ -39,7 +39,8 @@ func (h Handler) Page(c echo.Context) error {
 	}
 
 	req := new(request.PageUser)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 
@@ -121,7 +122,8 @@ func (h Handler) Create(c echo.Context) error {
 	}
 
 	req := new(request.CreateUser)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 
@@ -168,7 +170,8 @@ func (h Handler) Update(c echo.Context) error {
 	}
 
 	req := new(request.UpdateUser)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 
@@ -205,7 +208,8 @@ func (h Handler) ChangePassword(c echo.Context) error {
 	}
 
 	req := new(request.ChangePassword)
-	if err = c.Bind(req); err != nil {
+	err = c.Bind(req)
+	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
 	}
 

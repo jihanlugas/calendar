@@ -102,8 +102,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 	tPropertyprice.Weekdays = req.Weekdays
 	tPropertyprice.StartTime = req.StartTime
 	tPropertyprice.EndTime = req.EndTime
-
-	err = u.repository.Update(tx, tPropertyprice)
+	err = u.repository.Save(tx, tPropertyprice)
 	if err != nil {
 		return err
 	}

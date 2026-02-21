@@ -41,3 +41,12 @@ type CreatePropertyPropertytimeline struct {
 	Name        string `json:"name" form:"name" query:"name" validate:"required"`
 	Description string `json:"description" form:"description" query:"description" validate:""`
 }
+
+type SortPropertyPrice struct {
+	Propertyprices []PropertyPrice `json:"propertyprices" form:"propertyprices" query:"propertyprices" validate:"required"`
+}
+
+type PropertyPrice struct {
+	ID       string `json:"id" form:"id" query:"id" validate:"required"`
+	Priority int    `json:"priority" validate:"required"`
+}

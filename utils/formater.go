@@ -47,45 +47,83 @@ func TrimWhitespace(v interface{}) {
 	// Ensure the value is a pointer to a struct
 	val := reflect.ValueOf(v)
 	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			return
+		}
 		val = val.Elem()
 	}
 	if val.Kind() != reflect.Struct {
 		return
 	}
 
+	timeType := reflect.TypeOf(time.Time{})
+
 	// Iterate over all fields of the struct
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
+
+		// Skip unexported fields
+		if !field.CanSet() {
+			continue
+		}
 
 		switch field.Kind() {
 		case reflect.String:
 			// Trim string fields
 			field.SetString(strings.TrimSpace(field.String()))
+
 		case reflect.Ptr:
 			// If it's a pointer, check if it points to a string
+			if field.IsNil() {
+				continue
+			}
+
+			// Skip *time.Time to avoid panic on unexported fields
+			if field.Type().Elem() == timeType {
+				continue
+			}
+
 			if field.Type().Elem().Kind() == reflect.String {
 				// If it's a pointer to a string, trim its value
-				if !field.IsNil() {
-					trimmedStr := strings.TrimSpace(field.Elem().String())
-					// Only update if the trimmed string has content
-					if trimmedStr != "" {
-						field.Elem().SetString(trimmedStr)
-					}
+				trimmedStr := strings.TrimSpace(field.Elem().String())
+				// Only update if the trimmed string has content
+				if trimmedStr != "" {
+					field.Elem().SetString(trimmedStr)
 				}
-			} else if field.Elem().Kind() == reflect.Struct {
+			} else if field.Type().Elem().Kind() == reflect.Struct {
 				// If it's a pointer to a struct, recursively call TrimWhitespace
 				TrimWhitespace(field.Interface())
 			}
+
 		case reflect.Struct:
+			// Skip time.Time struct
+			if field.Type() == timeType {
+				continue
+			}
+
 			// If it's a struct, recursively call TrimWhitespace
 			TrimWhitespace(field.Addr().Interface())
+
 		case reflect.Slice:
 			// Handle slices of structs or pointers to structs
 			for j := 0; j < field.Len(); j++ {
 				elem := field.Index(j)
+
 				if elem.Kind() == reflect.Ptr {
+					if elem.IsNil() {
+						continue
+					}
+					// Skip *time.Time inside slice
+					if elem.Type().Elem() == timeType {
+						continue
+					}
 					TrimWhitespace(elem.Interface())
+
 				} else if elem.Kind() == reflect.Struct {
+					// Skip time.Time inside slice
+					if elem.Type() == timeType {
+						continue
+					}
 					TrimWhitespace(elem.Addr().Interface())
 				}
 			}

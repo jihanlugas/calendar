@@ -108,6 +108,7 @@ func Init() *echo.Echo {
 	routerProperty.GET("/:id", propertyHandler.GetById)
 	routerProperty.DELETE("/:id", propertyHandler.Delete)
 	routerProperty.POST("/get-price", propertyHandler.GetPrice)
+	routerProperty.POST("/:id/sort-property-price", propertyHandler.SortPropertyPrice)
 
 	routerPropertyprice := router.Group("/propertyprice", checkTokenMiddleware)
 	routerPropertyprice.GET("/:id", propertypriceHandler.GetById)
