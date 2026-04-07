@@ -24,7 +24,7 @@ func (a *Int32Array) Scan(value interface{}) error {
 
 	// Remove curly braces
 	str = strings.Trim(str, "{}")
-	
+
 	// Handle empty array
 	if str == "" {
 		*a = []int32{}
@@ -34,7 +34,7 @@ func (a *Int32Array) Scan(value interface{}) error {
 	// Split by comma
 	parts := strings.Split(str, ",")
 	result := make([]int32, len(parts))
-	
+
 	for i, part := range parts {
 		// Trim whitespace
 		part = strings.TrimSpace(part)
@@ -45,7 +45,7 @@ func (a *Int32Array) Scan(value interface{}) error {
 		}
 		result[i] = int32(val)
 	}
-	
+
 	*a = result
 	return nil
 }
@@ -55,12 +55,12 @@ func (a Int32Array) Value() (driver.Value, error) {
 	if a == nil {
 		return nil, nil
 	}
-	
+
 	strs := make([]string, len(a))
 	for i, v := range a {
 		strs[i] = strconv.FormatInt(int64(v), 10)
 	}
-	
+
 	return "{" + strings.Join(strs, ",") + "}", nil
 }
 

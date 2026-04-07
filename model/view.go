@@ -205,7 +205,6 @@ type EventView struct {
 	StartDt      time.Time            `json:"startDt"`
 	EndDt        time.Time            `json:"endDt"`
 	Status       constant.EventStatus `json:"status"`
-	Price        int64                `json:"price"`
 	CreateBy     string               `json:"createBy"`
 	CreateDt     time.Time            `json:"createDt"`
 	UpdateBy     string               `json:"updateBy"`
@@ -252,80 +251,80 @@ func (ProductView) TableName() string {
 	return VIEW_PRODUCT
 }
 
-type TransactionView struct {
-	ID           string         `json:"id"`
-	CompanyID    string         `json:"companyId"`
-	TotalEvent   int64          `json:"totalEvent"`
-	TotalProduct int64          `json:"totalProduct"`
-	Total        int64          `json:"total"`
-	Paid         bool           `json:"paid"`
-	CreateBy     string         `json:"createBy"`
-	CreateDt     time.Time      `json:"createDt"`
-	UpdateBy     string         `json:"updateBy"`
-	UpdateDt     time.Time      `json:"updateDt"`
-	DeleteDt     gorm.DeletedAt `json:"deleteDt"`
-	CompanyName  string         `json:"companyName"`
-	CreateName   string         `json:"createName"`
-	UpdateName   string         `json:"updateName"`
+// type TransactionView struct {
+// 	ID           string         `json:"id"`
+// 	CompanyID    string         `json:"companyId"`
+// 	TotalEvent   int64          `json:"totalEvent"`
+// 	TotalProduct int64          `json:"totalProduct"`
+// 	Total        int64          `json:"total"`
+// 	Paid         bool           `json:"paid"`
+// 	CreateBy     string         `json:"createBy"`
+// 	CreateDt     time.Time      `json:"createDt"`
+// 	UpdateBy     string         `json:"updateBy"`
+// 	UpdateDt     time.Time      `json:"updateDt"`
+// 	DeleteDt     gorm.DeletedAt `json:"deleteDt"`
+// 	CompanyName  string         `json:"companyName"`
+// 	CreateName   string         `json:"createName"`
+// 	UpdateName   string         `json:"updateName"`
 
-	Company             *CompanyView             `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
-	Transactionevents   []TransactioneventView   `json:"transactionevents,omitempty" gorm:"foreignKey:TransactionID"`
-	Transactionproducts []TransactionproductView `json:"transactionproducts,omitempty" gorm:"foreignKey:TransactionID"`
-}
+// 	Company             *CompanyView             `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+// 	Transactionevents   []TransactioneventView   `json:"transactionevents,omitempty" gorm:"foreignKey:TransactionID"`
+// 	Transactionproducts []TransactionproductView `json:"transactionproducts,omitempty" gorm:"foreignKey:TransactionID"`
+// }
 
-func (TransactionView) TableName() string {
-	return VIEW_TRANSACTION
-}
+// func (TransactionView) TableName() string {
+// 	return VIEW_TRANSACTION
+// }
 
-type TransactioneventView struct {
-	ID            string         `json:"id"`
-	CompanyID     string         `json:"companyId"`
-	TransactionID string         `json:"transactionId"`
-	EventID       string         `json:"eventId"`
-	Price         int64          `json:"price"`
-	Paid          bool           `json:"paid"`
-	CreateBy      string         `json:"createBy"`
-	CreateDt      time.Time      `json:"createDt"`
-	UpdateBy      string         `json:"updateBy"`
-	UpdateDt      time.Time      `json:"updateDt"`
-	DeleteDt      gorm.DeletedAt `json:"deleteDt"`
-	CompanyName   string         `json:"companyName"`
-	CreateName    string         `json:"createName"`
-	UpdateName    string         `json:"updateName"`
+// type TransactioneventView struct {
+// 	ID            string         `json:"id"`
+// 	CompanyID     string         `json:"companyId"`
+// 	TransactionID string         `json:"transactionId"`
+// 	EventID       string         `json:"eventId"`
+// 	Price         int64          `json:"price"`
+// 	Paid          bool           `json:"paid"`
+// 	CreateBy      string         `json:"createBy"`
+// 	CreateDt      time.Time      `json:"createDt"`
+// 	UpdateBy      string         `json:"updateBy"`
+// 	UpdateDt      time.Time      `json:"updateDt"`
+// 	DeleteDt      gorm.DeletedAt `json:"deleteDt"`
+// 	CompanyName   string         `json:"companyName"`
+// 	CreateName    string         `json:"createName"`
+// 	UpdateName    string         `json:"updateName"`
 
-	Company     *CompanyView     `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
-	Transaction *TransactionView `json:"transaction,omitempty" gorm:"foreignKey:TransactionID"`
-	Event       *EventView       `json:"event,omitempty" gorm:"foreignKey:EventID"`
-}
+// 	Company     *CompanyView     `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+// 	Transaction *TransactionView `json:"transaction,omitempty" gorm:"foreignKey:TransactionID"`
+// 	Event       *EventView       `json:"event,omitempty" gorm:"foreignKey:EventID"`
+// }
 
-func (TransactioneventView) TableName() string {
-	return VIEW_TRANSACTIONEVENT
-}
+// func (TransactioneventView) TableName() string {
+// 	return VIEW_TRANSACTIONEVENT
+// }
 
-type TransactionproductView struct {
-	ID            string         `json:"id"`
-	CompanyID     string         `json:"companyId"`
-	TransactionID string         `json:"transactionId"`
-	EventID       string         `json:"eventId"`
-	ProductID     string         `json:"productId"`
-	ProductName   string         `json:"productName"`
-	Price         int64          `json:"price"`
-	Paid          bool           `json:"paid"`
-	CreateBy      string         `json:"createBy"`
-	CreateDt      time.Time      `json:"createDt"`
-	UpdateBy      string         `json:"updateBy"`
-	UpdateDt      time.Time      `json:"updateDt"`
-	DeleteDt      gorm.DeletedAt `json:"deleteDt"`
-	CompanyName   string         `json:"companyName"`
-	CreateName    string         `json:"createName"`
-	UpdateName    string         `json:"updateName"`
+// type TransactionproductView struct {
+// 	ID            string         `json:"id"`
+// 	CompanyID     string         `json:"companyId"`
+// 	TransactionID string         `json:"transactionId"`
+// 	EventID       string         `json:"eventId"`
+// 	ProductID     string         `json:"productId"`
+// 	ProductName   string         `json:"productName"`
+// 	Price         int64          `json:"price"`
+// 	Paid          bool           `json:"paid"`
+// 	CreateBy      string         `json:"createBy"`
+// 	CreateDt      time.Time      `json:"createDt"`
+// 	UpdateBy      string         `json:"updateBy"`
+// 	UpdateDt      time.Time      `json:"updateDt"`
+// 	DeleteDt      gorm.DeletedAt `json:"deleteDt"`
+// 	CompanyName   string         `json:"companyName"`
+// 	CreateName    string         `json:"createName"`
+// 	UpdateName    string         `json:"updateName"`
 
-	Company     *CompanyView     `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
-	Transaction *TransactionView `json:"transaction,omitempty" gorm:"foreignKey:TransactionID"`
-	Event       *EventView       `json:"event,omitempty" gorm:"foreignKey:EventID"`
-	Product     *ProductView     `json:"product,omitempty" gorm:"foreignKey:ProductID"`
-}
+// 	Company     *CompanyView     `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+// 	Transaction *TransactionView `json:"transaction,omitempty" gorm:"foreignKey:TransactionID"`
+// 	Event       *EventView       `json:"event,omitempty" gorm:"foreignKey:EventID"`
+// 	Product     *ProductView     `json:"product,omitempty" gorm:"foreignKey:ProductID"`
+// }
 
-func (TransactionproductView) TableName() string {
-	return VIEW_TRANSACTIONPRODUCT
-}
+// func (TransactionproductView) TableName() string {
+// 	return VIEW_TRANSACTIONPRODUCT
+// }
