@@ -237,6 +237,7 @@ type EventView struct {
 	CompanyID    string               `json:"companyId"`
 	PropertyID   string               `json:"propertyId"`
 	UnitID       string               `json:"unitId"`
+	OrdereventID string               `json:"ordereventId"`
 	Name         string               `json:"name"`
 	Description  string               `json:"description"`
 	StartDt      time.Time            `json:"startDt"`
@@ -253,9 +254,10 @@ type EventView struct {
 	CreateName   string               `json:"createName"`
 	UpdateName   string               `json:"updateName"`
 
-	Company  *CompanyView  `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
-	Property *PropertyView `json:"property,omitempty" gorm:"foreignKey:PropertyID"`
-	Unit     *UnitView     `json:"unit,omitempty"`
+	Company    *CompanyView    `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Property   *PropertyView   `json:"property,omitempty" gorm:"foreignKey:PropertyID"`
+	Unit       *UnitView       `json:"unit,omitempty"`
+	Orderevent *OrdereventView `json:"orderevent,omitempty" gorm:"foreignKey:OrdereventID"`
 }
 
 func (EventView) TableName() string {

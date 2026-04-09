@@ -160,20 +160,21 @@ type Unit struct {
 }
 
 type Event struct {
-	ID          string               `gorm:"primaryKey" json:"id"`
-	CompanyID   string               `gorm:"not null" json:"company_id"`
-	PropertyID  string               `gorm:"not null" json:"property_id"`
-	UnitID      string               `gorm:"not null" json:"unit_id"`
-	Name        string               `gorm:"not null" json:"name"`
-	Description string               `gorm:"not null" json:"description"`
-	StartDt     time.Time            `gorm:"not null" json:"start_dt"`
-	EndDt       time.Time            `gorm:"not null" json:"end_dt"`
-	Status      constant.EventStatus `gorm:"not null" json:"status"`
-	CreateBy    string               `gorm:"not null" json:"create_by"`
-	CreateDt    time.Time            `gorm:"not null" json:"create_dt"`
-	UpdateBy    string               `gorm:"not null" json:"update_by"`
-	UpdateDt    time.Time            `gorm:"not null" json:"update_dt"`
-	DeleteDt    gorm.DeletedAt       `gorm:"null" json:"delete_dt"`
+	ID           string               `gorm:"primaryKey" json:"id"`
+	CompanyID    string               `gorm:"not null" json:"company_id"`
+	PropertyID   string               `gorm:"not null" json:"property_id"`
+	UnitID       string               `gorm:"not null" json:"unit_id"`
+	OrdereventID string               `gorm:"not null" json:"orderevent_id"`
+	Name         string               `gorm:"not null" json:"name"`
+	Description  string               `gorm:"not null" json:"description"`
+	StartDt      time.Time            `gorm:"not null" json:"start_dt"`
+	EndDt        time.Time            `gorm:"not null" json:"end_dt"`
+	Status       constant.EventStatus `gorm:"not null" json:"status"`
+	CreateBy     string               `gorm:"not null" json:"create_by"`
+	CreateDt     time.Time            `gorm:"not null" json:"create_dt"`
+	UpdateBy     string               `gorm:"not null" json:"update_by"`
+	UpdateDt     time.Time            `gorm:"not null" json:"update_dt"`
+	DeleteDt     gorm.DeletedAt       `gorm:"null" json:"delete_dt"`
 }
 
 type Product struct {

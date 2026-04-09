@@ -801,12 +801,15 @@ func dbSeed() {
 			}
 
 			status := constant.EVENT_STATUS_CONFIRM
+			ordereventId := ""
 			rand := utils.GetRandomNumber(1, 30) % 2
 			switch rand {
 			case 0:
 				status = constant.EVENT_STATUS_HOLD
+				ordereventId = ""
 			case 1:
 				status = constant.EVENT_STATUS_CONFIRM
+				ordereventId = utils.GetUniqueID()
 			}
 
 			getPriceReq := request.GetPrice{
@@ -819,15 +822,16 @@ func dbSeed() {
 				fmt.Println("ERR => ", err)
 			}
 			event := model.Event{
-				ID:          utils.GetUniqueID(),
-				PropertyID:  unit.PropertyID,
-				UnitID:      unit.ID,
-				CompanyID:   companyID,
-				Name:        fmt.Sprintf("Event %d", j+1),
-				Description: fmt.Sprintf("Generated Data Event %d", j+1),
-				StartDt:     startDt,
-				EndDt:       endDt,
-				Status:      status,
+				ID:           utils.GetUniqueID(),
+				PropertyID:   unit.PropertyID,
+				UnitID:       unit.ID,
+				CompanyID:    companyID,
+				OrdereventID: ordereventId,
+				Name:         fmt.Sprintf("Event %d", j+1),
+				Description:  fmt.Sprintf("Generated Data Event %d", j+1),
+				StartDt:      startDt,
+				EndDt:        endDt,
+				Status:       status,
 				// Price:       price,
 				CreateBy: adminID,
 				UpdateBy: adminID,
@@ -835,7 +839,7 @@ func dbSeed() {
 
 			if status == constant.EVENT_STATUS_CONFIRM {
 				order := model.Order{
-					ID:        utils.GetUniqueID(),
+					ID:        ordereventId,
 					CompanyID: companyID,
 					Tax:       0,
 					Discount:  0,
