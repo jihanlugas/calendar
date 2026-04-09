@@ -7,14 +7,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type TimeUnit string
-
-const (
-	TimeUnitHour TimeUnit = "hour"
-	TimeUnitDay  TimeUnit = "day"
-	TimeUnitWeek TimeUnit = "week"
-)
-
 type Photo struct {
 	ID          string         `gorm:"primaryKey" json:"id"`
 	ClientName  string         `gorm:"not null" json:"clientName"`
@@ -36,6 +28,16 @@ type Photoinc struct {
 	FolderInc int64  `gorm:"not null" json:"folderInc"`
 	Folder    string `gorm:"not null" json:"folder"`
 	Running   int64  `gorm:"not null" json:"running"`
+}
+
+type Paymentmethod struct {
+	ID       string         `gorm:"primaryKey"`
+	Name     string         `gorm:"not null"`
+	CreateBy string         `gorm:"not null"`
+	CreateDt time.Time      `gorm:"not null"`
+	UpdateBy string         `gorm:"not null"`
+	UpdateDt time.Time      `gorm:"not null"`
+	DeleteDt gorm.DeletedAt `gorm:"null"`
 }
 
 type User struct {
@@ -74,6 +76,17 @@ type Company struct {
 	UpdateBy    string         `gorm:"not null"`
 	UpdateDt    time.Time      `gorm:"not null"`
 	DeleteDt    gorm.DeletedAt `gorm:"null"`
+}
+
+type Companypaymentmethod struct {
+	ID              string         `gorm:"primaryKey"`
+	CompanyID       string         `gorm:"not null"`
+	PaymentmethodID string         `gorm:"not null"`
+	CreateBy        string         `gorm:"not null"`
+	CreateDt        time.Time      `gorm:"not null"`
+	UpdateBy        string         `gorm:"not null"`
+	UpdateDt        time.Time      `gorm:"not null"`
+	DeleteDt        gorm.DeletedAt `gorm:"null"`
 }
 
 type Usercompany struct {
@@ -177,63 +190,40 @@ type Product struct {
 	DeleteDt    gorm.DeletedAt `gorm:"null"`
 }
 
-// type Transaction struct {
-// 	ID           string         `gorm:"primaryKey"`
-// 	CompanyID    string         `gorm:"not null"`
-// 	TotalEvent   int64          `gorm:"not null"`
-// 	TotalProduct int64          `gorm:"not null"`
-// 	Total        int64          `gorm:"not null"`
-// 	Paid         bool           `gorm:"not null"`
-// 	CreateBy     string         `gorm:"not null"`
-// 	CreateDt     time.Time      `gorm:"not null"`
-// 	UpdateBy     string         `gorm:"not null"`
-// 	UpdateDt     time.Time      `gorm:"not null"`
-// 	DeleteDt     gorm.DeletedAt `gorm:"null"`
-// }
-
-// type Transactionevent struct {
-// 	ID            string         `gorm:"primaryKey"`
-// 	CompanyID     string         `gorm:"not null"`
-// 	TransactionID string         `gorm:"not null"`
-// 	EventID       string         `gorm:"not null"`
-// 	Price         int64          `gorm:"not null"`
-// 	Paid          bool           `gorm:"not null"`
-// 	CreateBy      string         `gorm:"not null"`
-// 	CreateDt      time.Time      `gorm:"not null"`
-// 	UpdateBy      string         `gorm:"not null"`
-// 	UpdateDt      time.Time      `gorm:"not null"`
-// 	DeleteDt      gorm.DeletedAt `gorm:"null"`
-// }
-
-// type Transactionproduct struct {
-// 	ID            string         `gorm:"primaryKey"`
-// 	CompanyID     string         `gorm:"not null"`
-// 	TransactionID string         `gorm:"not null"`
-// 	EventID       string         `gorm:"not null"`
-// 	ProductID     string         `gorm:"not null"`
-// 	ProductName   string         `gorm:"not null"`
-// 	Price         int64          `gorm:"not null"`
-// 	Paid          bool           `gorm:"not null"`
-// 	CreateBy      string         `gorm:"not null"`
-// 	CreateDt      time.Time      `gorm:"not null"`
-// 	UpdateBy      string         `gorm:"not null"`
-// 	UpdateDt      time.Time      `gorm:"not null"`
-// 	DeleteDt      gorm.DeletedAt `gorm:"null"`
-// }
-
 type Tax struct {
-	ID          string         `gorm:"primaryKey"`
-	CompanyID   string         `gorm:"not null"`
-	Name        string         `gorm:"not null"`
-	Type        string         `gorm:"not null"` // percentage or fixed
-	Value       int64          `gorm:"not null"`
-	IsInclusive bool           `gorm:"not null"`
-	IsActive    bool           `gorm:"not null"`
-	CreateBy    string         `gorm:"not null"`
-	CreateDt    time.Time      `gorm:"not null"`
-	UpdateBy    string         `gorm:"not null"`
-	UpdateDt    time.Time      `gorm:"not null"`
-	DeleteDt    gorm.DeletedAt `gorm:"null"`
+	ID          string           `gorm:"primaryKey"`
+	CompanyID   string           `gorm:"not null"`
+	Name        string           `gorm:"not null"`
+	Type        constant.TaxType `gorm:"not null"` // percentage or fixed
+	Value       int64            `gorm:"not null"`
+	IsInclusive bool             `gorm:"not null"`
+	IsActive    bool             `gorm:"not null"`
+	CreateBy    string           `gorm:"not null"`
+	CreateDt    time.Time        `gorm:"not null"`
+	UpdateBy    string           `gorm:"not null"`
+	UpdateDt    time.Time        `gorm:"not null"`
+	DeleteDt    gorm.DeletedAt   `gorm:"null"`
+}
+
+type Discount struct {
+	ID          string                `gorm:"primaryKey"`
+	CompanyID   string                `gorm:"not null"`
+	Name        string                `gorm:"not null"`
+	Description string                `gorm:"not null"`
+	Type        constant.DiscountType `gorm:"not null"` // percentage or fixed
+	Value       int64                 `gorm:"not null"`
+	MaxDiscount *int64                `gorm:"not null"`
+	MinPurchase *int64                `gorm:"not null"`
+	StartDt     *time.Time            `gorm:"null"`
+	EndDt       *time.Time            `gorm:"null"`
+	UsageLimit  *int                  `gorm:"not null"`
+	Used        *int                  `gorm:"not null"`
+	IsActive    bool                  `gorm:"not null"`
+	CreateBy    string                `gorm:"not null"`
+	CreateDt    time.Time             `gorm:"not null"`
+	UpdateBy    string                `gorm:"not null"`
+	UpdateDt    time.Time             `gorm:"not null"`
+	DeleteDt    gorm.DeletedAt        `gorm:"null"`
 }
 
 type Order struct {
@@ -244,6 +234,7 @@ type Order struct {
 	Rounding  int64          `gorm:"not null"`
 	Subtotal  int64          `gorm:"not null"` // OrderEvent + OrderProduct
 	Total     int64          `gorm:"not null"` // Subtotal + Tax - Discount
+	Payment   int64          `gorm:"not null"`
 	CreateBy  string         `gorm:"not null"`
 	CreateDt  time.Time      `gorm:"not null"`
 	UpdateBy  string         `gorm:"not null"`
@@ -251,13 +242,7 @@ type Order struct {
 	DeleteDt  gorm.DeletedAt `gorm:"null"`
 }
 
-type OrderTax struct {
-}
-
-type OrderDiscount struct {
-}
-
-type OrderEvent struct {
+type Orderevent struct {
 	ID        string         `gorm:"primaryKey"`
 	CompanyID string         `gorm:"not null"`
 	OrderID   string         `gorm:"not null"`
@@ -270,7 +255,7 @@ type OrderEvent struct {
 	DeleteDt  gorm.DeletedAt `gorm:"null"`
 }
 
-type OrderProduct struct {
+type Orderproduct struct {
 	ID        string         `gorm:"primaryKey"`
 	CompanyID string         `gorm:"not null"`
 	OrderID   string         `gorm:"not null"`
@@ -285,5 +270,41 @@ type OrderProduct struct {
 	DeleteDt  gorm.DeletedAt `gorm:"null"`
 }
 
-type OrderTransaction struct {
+type Ordertax struct {
+	ID        string         `gorm:"primaryKey"`
+	CompanyID string         `gorm:"not null"`
+	OrderID   string         `gorm:"not null"`
+	TaxID     string         `gorm:"not null"`
+	Total     int64          `gorm:"not null"`
+	CreateBy  string         `gorm:"not null"`
+	CreateDt  time.Time      `gorm:"not null"`
+	UpdateBy  string         `gorm:"not null"`
+	UpdateDt  time.Time      `gorm:"not null"`
+	DeleteDt  gorm.DeletedAt `gorm:"null"`
+}
+
+type Orderdiscount struct {
+	ID         string         `gorm:"primaryKey"`
+	CompanyID  string         `gorm:"not null"`
+	OrderID    string         `gorm:"not null"`
+	DiscountID string         `gorm:"not null"`
+	Total      int64          `gorm:"not null"`
+	CreateBy   string         `gorm:"not null"`
+	CreateDt   time.Time      `gorm:"not null"`
+	UpdateBy   string         `gorm:"not null"`
+	UpdateDt   time.Time      `gorm:"not null"`
+	DeleteDt   gorm.DeletedAt `gorm:"null"`
+}
+
+type Orderpayment struct {
+	ID              string         `gorm:"primaryKey"`
+	CompanyID       string         `gorm:"not null"`
+	OrderID         string         `gorm:"not null"`
+	PaymentmethodID string         `gorm:"not null"`
+	Total           int64          `gorm:"not null"`
+	CreateBy        string         `gorm:"not null"`
+	CreateDt        time.Time      `gorm:"not null"`
+	UpdateBy        string         `gorm:"not null"`
+	UpdateDt        time.Time      `gorm:"not null"`
+	DeleteDt        gorm.DeletedAt `gorm:"null"`
 }

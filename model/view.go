@@ -7,6 +7,20 @@ import (
 	"gorm.io/gorm"
 )
 
+type PaymentmethodView struct {
+	ID       string         `json:"id"`
+	Name     string         `json:"name"`
+	CreateBy string         `json:"createBy"`
+	CreateDt time.Time      `json:"createDt"`
+	UpdateBy string         `json:"updateBy"`
+	UpdateDt time.Time      `json:"updateDt"`
+	DeleteDt gorm.DeletedAt `json:"deleteDt"`
+}
+
+func (PaymentmethodView) TableName() string {
+	return VIEW_PAYMENTMETHOD
+}
+
 type UserView struct {
 	ID                string         `json:"id"`
 	CompanyID         string         `json:"companyId"`
@@ -59,15 +73,38 @@ type CompanyView struct {
 	CreateName  string         `json:"createName"`
 	UpdateName  string         `json:"updateName"`
 
-	Users      []UserView     `json:"users" gorm:"foreignKey:CompanyID"`
-	Properties []PropertyView `json:"properties" gorm:"foreignKey:CompanyID"`
-	Units      []UnitView     `json:"units" gorm:"foreignKey:CompanyID"`
-	Products   []ProductView  `json:"products" gorm:"foreignKey:CompanyID"`
-	Events     []EventView    `json:"events" gorm:"foreignKey:CompanyID"`
+	Users                 []UserView                 `json:"users" gorm:"foreignKey:CompanyID"`
+	Properties            []PropertyView             `json:"properties" gorm:"foreignKey:CompanyID"`
+	Units                 []UnitView                 `json:"units" gorm:"foreignKey:CompanyID"`
+	Products              []ProductView              `json:"products" gorm:"foreignKey:CompanyID"`
+	Events                []EventView                `json:"events" gorm:"foreignKey:CompanyID"`
+	Companypaymentmethods []CompanypaymentmethodView `json:"companypaymentmethods" gorm:"foreignKey:CompanyID"`
 }
 
 func (CompanyView) TableName() string {
 	return VIEW_COMPANY
+}
+
+type CompanypaymentmethodView struct {
+	ID                string         `json:"id"`
+	CompanyID         string         `json:"companyId"`
+	PaymentmethodID   string         `json:"paymentmethodId"`
+	CreateBy          string         `json:"createBy"`
+	CreateDt          time.Time      `json:"createDt"`
+	UpdateBy          string         `json:"updateBy"`
+	UpdateDt          time.Time      `json:"updateDt"`
+	DeleteDt          gorm.DeletedAt `json:"deleteDt"`
+	CompanyName       string         `json:"companyName"`
+	PaymentmethodName string         `json:"paymentmethodName"`
+	CreateName        string         `json:"createName"`
+	UpdateName        string         `json:"updateName"`
+
+	Company       *CompanyView       `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Paymentmethod *PaymentmethodView `json:"paymentmethod,omitempty" gorm:"foreignKey:PaymentmethodID"`
+}
+
+func (CompanypaymentmethodView) TableName() string {
+	return VIEW_COMPANYPAYMENTMETHOD
 }
 
 type UsercompanyView struct {
@@ -251,80 +288,203 @@ func (ProductView) TableName() string {
 	return VIEW_PRODUCT
 }
 
-// type TransactionView struct {
-// 	ID           string         `json:"id"`
-// 	CompanyID    string         `json:"companyId"`
-// 	TotalEvent   int64          `json:"totalEvent"`
-// 	TotalProduct int64          `json:"totalProduct"`
-// 	Total        int64          `json:"total"`
-// 	Paid         bool           `json:"paid"`
-// 	CreateBy     string         `json:"createBy"`
-// 	CreateDt     time.Time      `json:"createDt"`
-// 	UpdateBy     string         `json:"updateBy"`
-// 	UpdateDt     time.Time      `json:"updateDt"`
-// 	DeleteDt     gorm.DeletedAt `json:"deleteDt"`
-// 	CompanyName  string         `json:"companyName"`
-// 	CreateName   string         `json:"createName"`
-// 	UpdateName   string         `json:"updateName"`
+type TaxView struct {
+	ID          string           `json:"id"`
+	CompanyID   string           `json:"companyId"`
+	Name        string           `json:"name"`
+	Description string           `json:"description"`
+	Type        constant.TaxType `json:"type"`
+	Value       int64            `json:"value"`
+	CreateBy    string           `json:"createBy"`
+	CreateDt    time.Time        `json:"createDt"`
+	UpdateBy    string           `json:"updateBy"`
+	UpdateDt    time.Time        `json:"updateDt"`
+	DeleteDt    gorm.DeletedAt   `json:"deleteDt"`
+	CompanyName string           `json:"companyName"`
+	CreateName  string           `json:"createName"`
+	UpdateName  string           `json:"updateName"`
 
-// 	Company             *CompanyView             `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
-// 	Transactionevents   []TransactioneventView   `json:"transactionevents,omitempty" gorm:"foreignKey:TransactionID"`
-// 	Transactionproducts []TransactionproductView `json:"transactionproducts,omitempty" gorm:"foreignKey:TransactionID"`
-// }
+	Company *CompanyView `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+}
 
-// func (TransactionView) TableName() string {
-// 	return VIEW_TRANSACTION
-// }
+func (TaxView) TableName() string {
+	return VIEW_TAX
+}
 
-// type TransactioneventView struct {
-// 	ID            string         `json:"id"`
-// 	CompanyID     string         `json:"companyId"`
-// 	TransactionID string         `json:"transactionId"`
-// 	EventID       string         `json:"eventId"`
-// 	Price         int64          `json:"price"`
-// 	Paid          bool           `json:"paid"`
-// 	CreateBy      string         `json:"createBy"`
-// 	CreateDt      time.Time      `json:"createDt"`
-// 	UpdateBy      string         `json:"updateBy"`
-// 	UpdateDt      time.Time      `json:"updateDt"`
-// 	DeleteDt      gorm.DeletedAt `json:"deleteDt"`
-// 	CompanyName   string         `json:"companyName"`
-// 	CreateName    string         `json:"createName"`
-// 	UpdateName    string         `json:"updateName"`
+type DiscountView struct {
+	ID          string                `json:"id"`
+	CompanyID   string                `json:"companyId"`
+	Name        string                `json:"name"`
+	Description string                `json:"description"`
+	Type        constant.DiscountType `json:"type"`
+	Value       int64                 `json:"value"`
+	CreateBy    string                `json:"createBy"`
+	CreateDt    time.Time             `json:"createDt"`
+	UpdateBy    string                `json:"updateBy"`
+	UpdateDt    time.Time             `json:"updateDt"`
+	DeleteDt    gorm.DeletedAt        `json:"deleteDt"`
+	CompanyName string                `json:"companyName"`
+	CreateName  string                `json:"createName"`
+	UpdateName  string                `json:"updateName"`
 
-// 	Company     *CompanyView     `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
-// 	Transaction *TransactionView `json:"transaction,omitempty" gorm:"foreignKey:TransactionID"`
-// 	Event       *EventView       `json:"event,omitempty" gorm:"foreignKey:EventID"`
-// }
+	Company *CompanyView `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+}
 
-// func (TransactioneventView) TableName() string {
-// 	return VIEW_TRANSACTIONEVENT
-// }
+func (DiscountView) TableName() string {
+	return VIEW_DISCOUNT
+}
 
-// type TransactionproductView struct {
-// 	ID            string         `json:"id"`
-// 	CompanyID     string         `json:"companyId"`
-// 	TransactionID string         `json:"transactionId"`
-// 	EventID       string         `json:"eventId"`
-// 	ProductID     string         `json:"productId"`
-// 	ProductName   string         `json:"productName"`
-// 	Price         int64          `json:"price"`
-// 	Paid          bool           `json:"paid"`
-// 	CreateBy      string         `json:"createBy"`
-// 	CreateDt      time.Time      `json:"createDt"`
-// 	UpdateBy      string         `json:"updateBy"`
-// 	UpdateDt      time.Time      `json:"updateDt"`
-// 	DeleteDt      gorm.DeletedAt `json:"deleteDt"`
-// 	CompanyName   string         `json:"companyName"`
-// 	CreateName    string         `json:"createName"`
-// 	UpdateName    string         `json:"updateName"`
+type OrderView struct {
+	ID          string         `json:"id"`
+	CompanyID   string         `json:"companyId"`
+	Tax         int64          `json:"tax"`
+	Discount    int64          `json:"discount"`
+	Rounding    int64          `json:"rounding"`
+	Subtotal    int64          `json:"subtotal"`
+	Total       int64          `json:"total"`
+	Payment     int64          `json:"payment"`
+	CreateBy    string         `json:"createBy"`
+	CreateDt    time.Time      `json:"createDt"`
+	UpdateBy    string         `json:"updateBy"`
+	UpdateDt    time.Time      `json:"updateDt"`
+	DeleteDt    gorm.DeletedAt `json:"deleteDt"`
+	CompanyName string         `json:"companyName"`
+	CreateName  string         `json:"createName"`
+	UpdateName  string         `json:"updateName"`
 
-// 	Company     *CompanyView     `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
-// 	Transaction *TransactionView `json:"transaction,omitempty" gorm:"foreignKey:TransactionID"`
-// 	Event       *EventView       `json:"event,omitempty" gorm:"foreignKey:EventID"`
-// 	Product     *ProductView     `json:"product,omitempty" gorm:"foreignKey:ProductID"`
-// }
+	Company        *CompanyView        `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Orderevents    []OrdereventView    `json:"orderevents,omitempty" gorm:"foreignKey:OrderID"`
+	Orderproducts  []OrderproductView  `json:"orderproducts,omitempty" gorm:"foreignKey:OrderID"`
+	Ordertaxes     []OrdertaxView      `json:"ordertaxes,omitempty" gorm:"foreignKey:OrderID"`
+	Orderdiscounts []OrderdiscountView `json:"orderdiscounts,omitempty" gorm:"foreignKey:OrderID"`
+	Orderpayments  []OrderpaymentView  `json:"orderpayments,omitempty" gorm:"foreignKey:OrderID"`
+}
 
-// func (TransactionproductView) TableName() string {
-// 	return VIEW_TRANSACTIONPRODUCT
-// }
+func (OrderView) TableName() string {
+	return VIEW_ORDER
+}
+
+type OrdereventView struct {
+	ID         string         `json:"id"`
+	CompanyID  string         `json:"companyId"`
+	OrderID    string         `json:"orderId"`
+	EventID    string         `json:"eventId"`
+	CreateBy   string         `json:"createBy"`
+	CreateDt   time.Time      `json:"createDt"`
+	UpdateBy   string         `json:"updateBy"`
+	UpdateDt   time.Time      `json:"updateDt"`
+	DeleteDt   gorm.DeletedAt `json:"deleteDt"`
+	OrderName  string         `json:"orderName"`
+	EventName  string         `json:"eventName"`
+	CreateName string         `json:"createName"`
+	UpdateName string         `json:"updateName"`
+
+	Company *CompanyView `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Order   *OrderView   `json:"order,omitempty" gorm:"foreignKey:OrderID"`
+	Event   *EventView   `json:"event,omitempty" gorm:"foreignKey:EventID"`
+}
+
+func (OrdereventView) TableName() string {
+	return VIEW_ORDEREVENT
+}
+
+type OrderproductView struct {
+	ID          string         `json:"id"`
+	CompanyID   string         `json:"companyId"`
+	OrderID     string         `json:"orderId"`
+	ProductID   string         `json:"productId"`
+	Quantity    int            `json:"quantity"`
+	Price       int64          `json:"price"`
+	CreateBy    string         `json:"createBy"`
+	CreateDt    time.Time      `json:"createDt"`
+	UpdateBy    string         `json:"updateBy"`
+	UpdateDt    time.Time      `json:"updateDt"`
+	DeleteDt    gorm.DeletedAt `json:"deleteDt"`
+	OrderName   string         `json:"orderName"`
+	ProductName string         `json:"productName"`
+	CreateName  string         `json:"createName"`
+	UpdateName  string         `json:"updateName"`
+
+	Company *CompanyView `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Order   *OrderView   `json:"order,omitempty" gorm:"foreignKey:OrderID"`
+	Product *ProductView `json:"product,omitempty" gorm:"foreignKey:ProductID"`
+}
+
+func (OrderproductView) TableName() string {
+	return VIEW_ORDERPRODUCT
+}
+
+type OrdertaxView struct {
+	ID         string         `json:"id"`
+	CompanyID  string         `json:"companyId"`
+	OrderID    string         `json:"orderId"`
+	TaxID      string         `json:"taxId"`
+	Total      int64          `json:"total"`
+	CreateBy   string         `json:"createBy"`
+	CreateDt   time.Time      `json:"createDt"`
+	UpdateBy   string         `json:"updateBy"`
+	UpdateDt   time.Time      `json:"updateDt"`
+	DeleteDt   gorm.DeletedAt `json:"deleteDt"`
+	OrderName  string         `json:"orderName"`
+	TaxName    string         `json:"taxName"`
+	CreateName string         `json:"createName"`
+	UpdateName string         `json:"updateName"`
+
+	Company *CompanyView `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Order   *OrderView   `json:"order,omitempty" gorm:"foreignKey:OrderID"`
+	Tax     *TaxView     `json:"tax,omitempty" gorm:"foreignKey:TaxID"`
+}
+
+func (OrdertaxView) TableName() string {
+	return VIEW_ORDERTAX
+}
+
+type OrderdiscountView struct {
+	ID           string         `json:"id"`
+	CompanyID    string         `json:"companyId"`
+	OrderID      string         `json:"orderId"`
+	DiscountID   string         `json:"discountId"`
+	Total        int64          `json:"total"`
+	CreateBy     string         `json:"createBy"`
+	CreateDt     time.Time      `json:"createDt"`
+	UpdateBy     string         `json:"updateBy"`
+	UpdateDt     time.Time      `json:"updateDt"`
+	DeleteDt     gorm.DeletedAt `json:"deleteDt"`
+	OrderName    string         `json:"orderName"`
+	DiscountName string         `json:"discountName"`
+	CreateName   string         `json:"createName"`
+	UpdateName   string         `json:"updateName"`
+
+	Company  *CompanyView  `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Order    *OrderView    `json:"order,omitempty" gorm:"foreignKey:OrderID"`
+	Discount *DiscountView `json:"discount,omitempty" gorm:"foreignKey:DiscountID"`
+}
+
+func (OrderdiscountView) TableName() string {
+	return VIEW_ORDERDISCOUNT
+}
+
+type OrderpaymentView struct {
+	ID                string         `json:"id"`
+	CompanyID         string         `json:"companyId"`
+	OrderID           string         `json:"orderId"`
+	PaymentmethodID   string         `json:"paymentmethodId"`
+	Total             int64          `json:"total"`
+	CreateBy          string         `json:"createBy"`
+	CreateDt          time.Time      `json:"createDt"`
+	UpdateBy          string         `json:"updateBy"`
+	UpdateDt          time.Time      `json:"updateDt"`
+	DeleteDt          gorm.DeletedAt `json:"deleteDt"`
+	OrderName         string         `json:"orderName"`
+	PaymentmethodName string         `json:"paymentmethodName"`
+	CreateName        string         `json:"createName"`
+	UpdateName        string         `json:"updateName"`
+
+	Company       *CompanyView       `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Order         *OrderView         `json:"order,omitempty" gorm:"foreignKey:OrderID"`
+	Paymentmethod *PaymentmethodView `json:"paymentmethod,omitempty" gorm:"foreignKey:PaymentmethodID"`
+}
+
+func (OrderpaymentView) TableName() string {
+	return VIEW_ORDERPAYMENT
+}

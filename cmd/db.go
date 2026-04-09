@@ -5,10 +5,12 @@ import (
 	"log"
 	"time"
 
+	"github.com/jihanlugas/calendar/app/propertyprice"
 	"github.com/jihanlugas/calendar/constant"
 	"github.com/jihanlugas/calendar/cryption"
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/model"
+	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/utils"
 	"gorm.io/gorm"
 )
@@ -30,7 +32,15 @@ func dbUpTable() {
 	if err != nil {
 		panic(err)
 	}
+	err = conn.Migrator().AutoMigrate(&model.Paymentmethod{})
+	if err != nil {
+		panic(err)
+	}
 	err = conn.Migrator().AutoMigrate(&model.Company{})
+	if err != nil {
+		panic(err)
+	}
+	err = conn.Migrator().AutoMigrate(&model.Companypaymentmethod{})
 	if err != nil {
 		panic(err)
 	}
@@ -62,18 +72,38 @@ func dbUpTable() {
 	if err != nil {
 		panic(err)
 	}
-	// err = conn.Migrator().AutoMigrate(&model.Transaction{})
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// err = conn.Migrator().AutoMigrate(&model.Transactionevent{})
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// err = conn.Migrator().AutoMigrate(&model.Transactionproduct{})
-	// if err != nil {
-	// 	panic(err)
-	// }
+	err = conn.Migrator().AutoMigrate(&model.Tax{})
+	if err != nil {
+		panic(err)
+	}
+	err = conn.Migrator().AutoMigrate(&model.Discount{})
+	if err != nil {
+		panic(err)
+	}
+	err = conn.Migrator().AutoMigrate(&model.Order{})
+	if err != nil {
+		panic(err)
+	}
+	err = conn.Migrator().AutoMigrate(&model.Orderevent{})
+	if err != nil {
+		panic(err)
+	}
+	err = conn.Migrator().AutoMigrate(&model.Orderproduct{})
+	if err != nil {
+		panic(err)
+	}
+	err = conn.Migrator().AutoMigrate(&model.Ordertax{})
+	if err != nil {
+		panic(err)
+	}
+	err = conn.Migrator().AutoMigrate(&model.Orderdiscount{})
+	if err != nil {
+		panic(err)
+	}
+	err = conn.Migrator().AutoMigrate(&model.Orderpayment{})
+	if err != nil {
+		panic(err)
+	}
 }
 
 func dbUpView() {
@@ -81,6 +111,22 @@ func dbUpView() {
 
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
+
+	err = conn.Migrator().DropView(model.VIEW_PAYMENTMETHOD)
+	if err != nil {
+		panic(err)
+	}
+	vPaymentmethod := conn.Model(&model.Paymentmethod{}).Unscoped().
+		Select("paymentmethods.*, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join users u1 on u1.id = paymentmethods.create_by").
+		Joins("left join users u2 on u2.id = paymentmethods.update_by")
+	err = conn.Migrator().CreateView(model.VIEW_PAYMENTMETHOD, gorm.ViewOption{
+		Replace: true,
+		Query:   vPaymentmethod,
+	})
+	if err != nil {
+		panic(err)
+	}
 
 	err = conn.Migrator().DropView(model.VIEW_USER)
 	if err != nil {
@@ -247,60 +293,154 @@ func dbUpView() {
 		panic(err)
 	}
 
-	// err = conn.Migrator().DropView(model.VIEW_TRANSACTION)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// vTransaction := conn.Model(&model.Transaction{}).Unscoped().
-	// 	Select("transactions.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
-	// 	Joins("left join companies companies on companies.id = transactions.company_id").
-	// 	Joins("left join users u1 on u1.id = transactions.create_by").
-	// 	Joins("left join users u2 on u2.id = transactions.update_by")
+	err = conn.Migrator().DropView(model.VIEW_TAX)
+	if err != nil {
+		panic(err)
+	}
+	vTax := conn.Model(&model.Tax{}).Unscoped().
+		Select("taxes.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = taxes.company_id").
+		Joins("left join users u1 on u1.id = taxes.create_by").
+		Joins("left join users u2 on u2.id = taxes.update_by")
 
-	// err = conn.Migrator().CreateView(model.VIEW_TRANSACTION, gorm.ViewOption{
-	// 	Replace: true,
-	// 	Query:   vTransaction,
-	// })
-	// if err != nil {
-	// 	panic(err)
-	// }
+	err = conn.Migrator().CreateView(model.VIEW_TAX, gorm.ViewOption{
+		Replace: true,
+		Query:   vTax,
+	})
+	if err != nil {
+		panic(err)
+	}
 
-	// err = conn.Migrator().DropView(model.VIEW_TRANSACTIONEVENT)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// vTransactionevent := conn.Model(&model.Transactionevent{}).Unscoped().
-	// 	Select("transactionevents.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
-	// 	Joins("left join companies companies on companies.id = transactionevents.company_id").
-	// 	Joins("left join users u1 on u1.id = transactionevents.create_by").
-	// 	Joins("left join users u2 on u2.id = transactionevents.update_by")
+	err = conn.Migrator().DropView(model.VIEW_DISCOUNT)
+	if err != nil {
+		panic(err)
+	}
+	vDiscount := conn.Model(&model.Discount{}).Unscoped().
+		Select("discounts.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = discounts.company_id").
+		Joins("left join users u1 on u1.id = discounts.create_by").
+		Joins("left join users u2 on u2.id = discounts.update_by")
 
-	// err = conn.Migrator().CreateView(model.VIEW_TRANSACTIONEVENT, gorm.ViewOption{
-	// 	Replace: true,
-	// 	Query:   vTransactionevent,
-	// })
-	// if err != nil {
-	// 	panic(err)
-	// }
+	err = conn.Migrator().CreateView(model.VIEW_DISCOUNT, gorm.ViewOption{
+		Replace: true,
+		Query:   vDiscount,
+	})
+	if err != nil {
+		panic(err)
+	}
 
-	// err = conn.Migrator().DropView(model.VIEW_TRANSACTIONPRODUCT)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// vTransactionproduct := conn.Model(&model.Transactionproduct{}).Unscoped().
-	// 	Select("transactionproducts.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
-	// 	Joins("left join companies companies on companies.id = transactionproducts.company_id").
-	// 	Joins("left join users u1 on u1.id = transactionproducts.create_by").
-	// 	Joins("left join users u2 on u2.id = transactionproducts.update_by")
+	err = conn.Migrator().DropView(model.VIEW_ORDER)
+	if err != nil {
+		panic(err)
+	}
+	vOrder := conn.Model(&model.Order{}).Unscoped().
+		Select("orders.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = orders.company_id").
+		Joins("left join users u1 on u1.id = orders.create_by").
+		Joins("left join users u2 on u2.id = orders.update_by")
 
-	// err = conn.Migrator().CreateView(model.VIEW_TRANSACTIONPRODUCT, gorm.ViewOption{
-	// 	Replace: true,
-	// 	Query:   vTransactionproduct,
-	// })
-	// if err != nil {
-	// 	panic(err)
-	// }
+	err = conn.Migrator().CreateView(model.VIEW_ORDER, gorm.ViewOption{
+		Replace: true,
+		Query:   vOrder,
+	})
+	if err != nil {
+		panic(err)
+	}
 
+	err = conn.Migrator().DropView(model.VIEW_ORDEREVENT)
+	if err != nil {
+		panic(err)
+	}
+	vOrderevent := conn.Model(&model.Orderevent{}).Unscoped().
+		Select("orderevents.*, companies.name as company_name, events.name as event_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = orderevents.company_id").
+		Joins("left join events events on events.id = orderevents.event_id").
+		Joins("left join users u1 on u1.id = orderevents.create_by").
+		Joins("left join users u2 on u2.id = orderevents.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_ORDEREVENT, gorm.ViewOption{
+		Replace: true,
+		Query:   vOrderevent,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = conn.Migrator().DropView(model.VIEW_ORDERPRODUCT)
+	if err != nil {
+		panic(err)
+	}
+	vOrderproduct := conn.Model(&model.Orderproduct{}).Unscoped().
+		Select("orderproducts.*, companies.name as company_name, products.name as product_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = orderproducts.company_id").
+		Joins("left join products products on products.id = orderproducts.product_id").
+		Joins("left join users u1 on u1.id = orderproducts.create_by").
+		Joins("left join users u2 on u2.id = orderproducts.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_ORDERPRODUCT, gorm.ViewOption{
+		Replace: true,
+		Query:   vOrderproduct,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = conn.Migrator().DropView(model.VIEW_ORDERTAX)
+	if err != nil {
+		panic(err)
+	}
+	vOrdertax := conn.Model(&model.Ordertax{}).Unscoped().
+		Select("ordertaxes.*, companies.name as company_name, taxes.name as tax_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = ordertaxes.company_id").
+		Joins("left join taxes taxes on taxes.id = ordertaxes.tax_id").
+		Joins("left join users u1 on u1.id = ordertaxes.create_by").
+		Joins("left join users u2 on u2.id = ordertaxes.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_ORDERTAX, gorm.ViewOption{
+		Replace: true,
+		Query:   vOrdertax,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = conn.Migrator().DropView(model.VIEW_ORDERDISCOUNT)
+	if err != nil {
+		panic(err)
+	}
+	vOrderdiscount := conn.Model(&model.Orderdiscount{}).Unscoped().
+		Select("orderdiscounts.*, companies.name as company_name, discounts.name as discount_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = orderdiscounts.company_id").
+		Joins("left join discounts discounts on discounts.id = orderdiscounts.discount_id").
+		Joins("left join users u1 on u1.id = orderdiscounts.create_by").
+		Joins("left join users u2 on u2.id = orderdiscounts.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_ORDERDISCOUNT, gorm.ViewOption{
+		Replace: true,
+		Query:   vOrderdiscount,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	err = conn.Migrator().DropView(model.VIEW_ORDERPAYMENT)
+	if err != nil {
+		panic(err)
+	}
+	vOrderpayment := conn.Model(&model.Orderpayment{}).Unscoped().
+		Select("orderpayments.*, companies.name as company_name, paymentmethods.name as paymentmethod_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = orderpayments.company_id").
+		Joins("left join paymentmethods paymentmethods on paymentmethods.id = orderpayments.paymentmethod_id").
+		Joins("left join users u1 on u1.id = orderpayments.create_by").
+		Joins("left join users u2 on u2.id = orderpayments.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_ORDERPAYMENT, gorm.ViewOption{
+		Replace: true,
+		Query:   vOrderpayment,
+	})
+	if err != nil {
+		panic(err)
+	}
 }
 
 func dbUpListener() {
@@ -402,7 +542,7 @@ func dbSeed() {
 	conn, closeConn := db.GetConnection()
 	defer closeConn()
 
-	// propertypriceRepo := propertyprice.NewRepository()
+	propertypriceRepo := propertyprice.NewRepository()
 
 	tx := conn.Begin()
 
@@ -412,7 +552,33 @@ func dbSeed() {
 	property1ID := "db979b45-30e5-4e70-9eec-0cea0089ae12"
 	property2ID := "cd94a84e-33bc-43b0-9da0-52a5b6239ed9"
 
+	paymentmethodCashID := utils.GetUniqueID()
+	paymentmethodQRISID := utils.GetUniqueID()
+	paymentmethodBankTransferID := utils.GetUniqueID()
+
 	now := time.Now()
+
+	paymentmethods := []model.Paymentmethod{
+		{
+			ID:       paymentmethodCashID,
+			Name:     "Cash",
+			CreateBy: adminID,
+			UpdateBy: adminID,
+		},
+		{
+			ID:       paymentmethodQRISID,
+			Name:     "QRIS",
+			CreateBy: adminID,
+			UpdateBy: adminID,
+		},
+		{
+			ID:       paymentmethodBankTransferID,
+			Name:     "Bank Transfer",
+			CreateBy: adminID,
+			UpdateBy: adminID,
+		},
+	}
+	tx.Create(&paymentmethods)
 
 	password, err := cryption.EncryptAES64("123456")
 	if err != nil {
@@ -467,6 +633,28 @@ func dbSeed() {
 		},
 	}
 	tx.Create(&companies)
+
+	companypaymentmethods := []model.Companypaymentmethod{
+		{
+			CompanyID:       companyID,
+			PaymentmethodID: paymentmethodCashID,
+			CreateBy:        adminID,
+			UpdateBy:        adminID,
+		},
+		{
+			CompanyID:       companyID,
+			PaymentmethodID: paymentmethodQRISID,
+			CreateBy:        adminID,
+			UpdateBy:        adminID,
+		},
+		{
+			CompanyID:       companyID,
+			PaymentmethodID: paymentmethodBankTransferID,
+			CreateBy:        adminID,
+			UpdateBy:        adminID,
+		},
+	}
+	tx.Create(&companypaymentmethods)
 
 	usercompanies := []model.Usercompany{
 		{
@@ -594,6 +782,8 @@ func dbSeed() {
 	tx.Create(&units)
 
 	events := []model.Event{}
+	orders := []model.Order{}
+	orderevents := []model.Orderevent{}
 	currProperty := ""
 	startDt := time.Now().Truncate(time.Hour * 24)
 	for _, unit := range units {
@@ -619,16 +809,17 @@ func dbSeed() {
 				status = constant.EVENT_STATUS_CONFIRM
 			}
 
-			// getPriceReq := request.GetPrice{
-			// 	PropertyID: unit.PropertyID,
-			// 	StartDt:    startDt,
-			// 	EndDt:      endDt,
-			// }
-			// price, err := propertypriceRepo.GetPrice(tx, getPriceReq)
-			// if err != nil {
-			// 	fmt.Println("ERR => ", err)
-			// }
+			getPriceReq := request.GetPrice{
+				PropertyID: unit.PropertyID,
+				StartDt:    startDt,
+				EndDt:      endDt,
+			}
+			price, err := propertypriceRepo.GetPrice(tx, getPriceReq)
+			if err != nil {
+				fmt.Println("ERR => ", err)
+			}
 			event := model.Event{
+				ID:          utils.GetUniqueID(),
 				PropertyID:  unit.PropertyID,
 				UnitID:      unit.ID,
 				CompanyID:   companyID,
@@ -642,6 +833,33 @@ func dbSeed() {
 				UpdateBy: adminID,
 			}
 
+			if status == constant.EVENT_STATUS_CONFIRM {
+				order := model.Order{
+					ID:        utils.GetUniqueID(),
+					CompanyID: companyID,
+					Tax:       0,
+					Discount:  0,
+					Rounding:  0,
+					Subtotal:  price,
+					Total:     price,
+					Payment:   0,
+					CreateBy:  adminID,
+					UpdateBy:  adminID,
+				}
+				orders = append(orders, order)
+
+				orderevent := model.Orderevent{
+					ID:        utils.GetUniqueID(),
+					OrderID:   order.ID,
+					EventID:   event.ID,
+					CompanyID: companyID,
+					Total:     price,
+					CreateBy:  adminID,
+					UpdateBy:  adminID,
+				}
+				orderevents = append(orderevents, orderevent)
+			}
+
 			startDt = endDt.Add(time.Hour * time.Duration(utils.GetRandomNumber(0, 5)))
 
 			events = append(events, event)
@@ -650,6 +868,8 @@ func dbSeed() {
 	}
 
 	tx.Create(&events)
+	tx.Create(&orders)
+	tx.Create(&orderevents)
 
 	products := []model.Product{
 		{CompanyID: companyID, Name: "Lee Mineral 600 Ml", Description: "Lee Mineral 600 Ml", Price: 3500, CreateBy: adminID, UpdateBy: adminID},

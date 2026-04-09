@@ -5,6 +5,8 @@ type TransactionType int64
 
 type WsType string
 type EventStatus string
+type TaxType string
+type DiscountType string
 
 const (
 	// Ref Table
@@ -28,4 +30,14 @@ const (
 const (
 	EVENT_STATUS_HOLD    EventStatus = "HOLD"
 	EVENT_STATUS_CONFIRM EventStatus = "CONFIRM"
+)
+
+const (
+	TAX_TYPE_PERCENTAGE TaxType = "PERCENTAGE"
+	TAX_TYPE_FIXED      TaxType = "FIXED"
+)
+
+const (
+	DISCOUNT_TYPE_PERCENTAGE DiscountType = "PERCENTAGE"
+	DISCOUNT_TYPE_FIXED      DiscountType = "FIXED"
 )
