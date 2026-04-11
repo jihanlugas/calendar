@@ -260,10 +260,11 @@ func dbUpView() {
 		panic(err)
 	}
 	vEvent := conn.Model(&model.Event{}).Unscoped().
-		Select("events.*, companies.name as company_name, properties.name as property_name, units.name as unit_name, u1.fullname as create_name, u2.fullname as update_name").
+		Select("events.*, orderevents.total as price, companies.name as company_name, properties.name as property_name, units.name as unit_name, u1.fullname as create_name, u2.fullname as update_name").
 		Joins("left join companies companies on companies.id = events.company_id").
 		Joins("left join properties properties on properties.id = events.property_id").
 		Joins("left join units units on units.id = events.unit_id").
+		Joins("left join orderevents orderevents on orderevents.id = events.orderevent_id").
 		Joins("left join users u1 on u1.id = events.create_by").
 		Joins("left join users u2 on u2.id = events.update_by")
 
@@ -837,32 +838,30 @@ func dbSeed() {
 				UpdateBy: adminID,
 			}
 
-			if status == constant.EVENT_STATUS_CONFIRM {
-				order := model.Order{
-					ID:        ordereventId,
-					CompanyID: companyID,
-					Tax:       0,
-					Discount:  0,
-					Rounding:  0,
-					Subtotal:  price,
-					Total:     price,
-					Payment:   0,
-					CreateBy:  adminID,
-					UpdateBy:  adminID,
-				}
-				orders = append(orders, order)
-
-				orderevent := model.Orderevent{
-					ID:        utils.GetUniqueID(),
-					OrderID:   order.ID,
-					EventID:   event.ID,
-					CompanyID: companyID,
-					Total:     price,
-					CreateBy:  adminID,
-					UpdateBy:  adminID,
-				}
-				orderevents = append(orderevents, orderevent)
+			order := model.Order{
+				ID:        utils.GetUniqueID(),
+				CompanyID: companyID,
+				Tax:       0,
+				Discount:  0,
+				Rounding:  0,
+				Subtotal:  price,
+				Total:     price,
+				Payment:   0,
+				CreateBy:  adminID,
+				UpdateBy:  adminID,
 			}
+			orders = append(orders, order)
+
+			orderevent := model.Orderevent{
+				ID:        ordereventId,
+				OrderID:   order.ID,
+				EventID:   event.ID,
+				CompanyID: companyID,
+				Total:     price,
+				CreateBy:  adminID,
+				UpdateBy:  adminID,
+			}
+			orderevents = append(orderevents, orderevent)
 
 			startDt = endDt.Add(time.Hour * time.Duration(utils.GetRandomNumber(0, 5)))
 

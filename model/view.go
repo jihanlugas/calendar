@@ -8,13 +8,15 @@ import (
 )
 
 type PaymentmethodView struct {
-	ID       string         `json:"id"`
-	Name     string         `json:"name"`
-	CreateBy string         `json:"createBy"`
-	CreateDt time.Time      `json:"createDt"`
-	UpdateBy string         `json:"updateBy"`
-	UpdateDt time.Time      `json:"updateDt"`
-	DeleteDt gorm.DeletedAt `json:"deleteDt"`
+	ID         string         `json:"id"`
+	Name       string         `json:"name"`
+	CreateBy   string         `json:"createBy"`
+	CreateDt   time.Time      `json:"createDt"`
+	UpdateBy   string         `json:"updateBy"`
+	UpdateDt   time.Time      `json:"updateDt"`
+	DeleteDt   gorm.DeletedAt `json:"deleteDt"`
+	CreateName string         `json:"createName"`
+	UpdateName string         `json:"updateName"`
 }
 
 func (PaymentmethodView) TableName() string {
@@ -248,6 +250,7 @@ type EventView struct {
 	UpdateBy     string               `json:"updateBy"`
 	UpdateDt     time.Time            `json:"updateDt"`
 	DeleteDt     gorm.DeletedAt       `json:"deleteDt"`
+	Price        int64                `json:"price"`
 	CompanyName  string               `json:"companyName"`
 	PropertyName string               `json:"propertyName"`
 	UnitName     string               `json:"unitName"`
@@ -371,6 +374,7 @@ type OrdereventView struct {
 	CompanyID  string         `json:"companyId"`
 	OrderID    string         `json:"orderId"`
 	EventID    string         `json:"eventId"`
+	Total      int64          `json:"total"`
 	CreateBy   string         `json:"createBy"`
 	CreateDt   time.Time      `json:"createDt"`
 	UpdateBy   string         `json:"updateBy"`
