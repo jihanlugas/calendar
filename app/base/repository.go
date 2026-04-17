@@ -55,7 +55,7 @@ func (r *repositoryImpl[T, V]) Creates(conn *gorm.DB, data []T) error {
 }
 
 func (r *repositoryImpl[T, V]) Update(conn *gorm.DB, data T) error {
-	return conn.Save(&data).Error
+	return conn.Model(&data).Updates(data).Error
 }
 
 func (r *repositoryImpl[T, V]) Save(conn *gorm.DB, data T) error {
