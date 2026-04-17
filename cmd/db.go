@@ -802,15 +802,13 @@ func dbSeed() {
 			}
 
 			status := constant.EVENT_STATUS_CONFIRM
-			ordereventId := ""
+			ordereventId := utils.GetUniqueID()
 			rand := utils.GetRandomNumber(1, 30) % 2
 			switch rand {
 			case 0:
 				status = constant.EVENT_STATUS_HOLD
-				ordereventId = ""
 			case 1:
 				status = constant.EVENT_STATUS_CONFIRM
-				ordereventId = utils.GetUniqueID()
 			}
 
 			getPriceReq := request.GetPrice{
