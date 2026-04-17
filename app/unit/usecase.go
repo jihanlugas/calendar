@@ -46,7 +46,7 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 
 	vUnit, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
-		return vUnit, errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return vUnit, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, vUnit.CompanyID) {
@@ -81,7 +81,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUnit) error {
 
 	err = u.repository.Create(tx, tUnit)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -101,7 +101,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUn
 
 	tUnit, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, tUnit.CompanyID) {
@@ -115,7 +115,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUn
 	tUnit.UpdateBy = loginUser.UserID
 	err = u.repository.Save(tx, tUnit)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to update %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -135,7 +135,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	tUnit, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, tUnit.CompanyID) {
@@ -146,7 +146,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	err = u.repository.Delete(tx, tUnit)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to delete %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error

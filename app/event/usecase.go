@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jihanlugas/calendar/app/order"
+	"github.com/jihanlugas/calendar/app/orderevent"
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
@@ -22,7 +24,9 @@ type Usecase interface {
 }
 
 type usecase struct {
-	repository Repository
+	repository           Repository
+	repositoryOrder      order.Repository
+	repositoryOrderevent orderevent.Repository
 }
 
 func (u usecase) Timeline(loginUser jwt.UserLogin, req request.TimelineEvent) (vEvents []model.EventView, err error) {
@@ -63,7 +67,7 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 
 	vEvent, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
-		return vEvent, errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return vEvent, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, vEvent.CompanyID) {
@@ -96,14 +100,45 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 		StartDt:     req.StartDt,
 		EndDt:       req.EndDt,
 		Status:      req.Status,
-		// Price:       req.Price,
+		CreateBy:    loginUser.UserID,
+		UpdateBy:    loginUser.UserID,
+	}
+
+	tOrder := model.Order{
+		ID:        utils.GetUniqueID(),
+		CompanyID: req.CompanyID,
+		Tax:       0,
+		Discount:  0,
+		Rounding:  0,
+		Subtotal:  req.Price,
+		Total:     req.Price,
+		Payment:   0,
+		CreateBy:  loginUser.UserID,
+		UpdateBy:  loginUser.UserID,
+	}
+
+	tOrderevent := model.Orderevent{
+		ID:       utils.GetUniqueID(),
+		OrderID:  tOrder.ID,
+		EventID:  tEvent.ID,
+		Total:    req.Price,
 		CreateBy: loginUser.UserID,
 		UpdateBy: loginUser.UserID,
 	}
 
+	err = u.repositoryOrder.Create(tx, tOrder)
+	if err != nil {
+		return fmt.Errorf("failed to create %s: %v", u.repositoryOrder.Name(), err)
+	}
+
+	err = u.repositoryOrderevent.Create(tx, tOrderevent)
+	if err != nil {
+		return fmt.Errorf("failed to create %s: %v", u.repositoryOrderevent.Name(), err)
+	}
+
 	err = u.repository.Create(tx, tEvent)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to create %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -123,7 +158,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEv
 
 	tEvent, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, tEvent.CompanyID) {
@@ -141,7 +176,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEv
 	tEvent.UpdateBy = loginUser.UserID
 	err = u.repository.Save(tx, tEvent)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to update %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -161,7 +196,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	tEvent, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	if jwt.IsSaveCompanyIDOR(loginUser, tEvent.CompanyID) {
@@ -172,7 +207,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	err = u.repository.Delete(tx, tEvent)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to delete %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
@@ -183,8 +218,10 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 	return err
 }
 
-func NewUsecase(repository Repository) Usecase {
+func NewUsecase(repository Repository, repositoryOrder order.Repository, repositoryOrderevent orderevent.Repository) Usecase {
 	return &usecase{
-		repository: repository,
+		repository:           repository,
+		repositoryOrder:      repositoryOrder,
+		repositoryOrderevent: repositoryOrderevent,
 	}
 }

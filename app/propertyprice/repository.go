@@ -5,65 +5,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
-	Name() string
-	GetTableById(conn *gorm.DB, id string, preloads ...string) (tPropertyprice model.Propertyprice, err error)
-	GetViewById(conn *gorm.DB, id string, preloads ...string) (vPropertyprice model.PropertypriceView, err error)
-	Create(conn *gorm.DB, tPropertyprice model.Propertyprice) error
-	Creates(conn *gorm.DB, tPropertyprices []model.Propertyprice) error
-	Update(conn *gorm.DB, tPropertyprice model.Propertyprice) error
-	Save(conn *gorm.DB, tPropertyprice model.Propertyprice) error
-	Delete(conn *gorm.DB, tPropertyprice model.Propertyprice) error
+	base.Repository[model.Propertyprice, model.PropertypriceView]
 	GetPrice(conn *gorm.DB, req request.GetPrice) (price int64, err error)
 	CountByPropertyID(conn *gorm.DB, propertyID string) (count int64, err error)
 }
 
 type repository struct {
-}
-
-func (r repository) Name() string {
-	return "propertyprice"
-}
-
-func (r repository) GetTableById(conn *gorm.DB, id string, preloads ...string) (tPropertyprice model.Propertyprice, err error) {
-	for _, preload := range preloads {
-		conn = conn.Preload(preload)
-	}
-	err = conn.Where("id = ? ", id).First(&tPropertyprice).Error
-	return tPropertyprice, err
-}
-
-func (r repository) GetViewById(conn *gorm.DB, id string, preloads ...string) (vPropertyprice model.PropertypriceView, err error) {
-	for _, preload := range preloads {
-		conn = conn.Preload(preload)
-	}
-	err = conn.Where("id = ? ", id).First(&vPropertyprice).Error
-	return vPropertyprice, err
-}
-
-func (r repository) Create(conn *gorm.DB, tPropertyprice model.Propertyprice) error {
-	return conn.Create(&tPropertyprice).Error
-}
-
-func (r repository) Creates(conn *gorm.DB, tPropertyprices []model.Propertyprice) error {
-	return conn.Create(&tPropertyprices).Error
-}
-
-func (r repository) Update(conn *gorm.DB, tPropertyprice model.Propertyprice) error {
-	return conn.Model(&tPropertyprice).Updates(&tPropertyprice).Error
-}
-
-func (r repository) Save(conn *gorm.DB, tPropertyprice model.Propertyprice) error {
-	return conn.Save(&tPropertyprice).Error
-}
-
-func (r repository) Delete(conn *gorm.DB, tPropertyprice model.Propertyprice) error {
-	return conn.Delete(&tPropertyprice).Error
+	base.Repository[model.Propertyprice, model.PropertypriceView]
 }
 
 func (r repository) GetPrice(conn *gorm.DB, req request.GetPrice) (int64, error) {
@@ -140,5 +95,7 @@ func contains(arr []int32, v int32) bool {
 }
 
 func NewRepository() Repository {
-	return &repository{}
+	return &repository{
+		Repository: base.NewRepository[model.Propertyprice, model.PropertypriceView]("paymentmethod"),
+	}
 }

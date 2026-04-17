@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/utils"
@@ -11,35 +12,18 @@ import (
 )
 
 type Repository interface {
-	Name() string
-	GetTableById(conn *gorm.DB, id string, preloads ...string) (tUser model.User, err error)
+	base.Repository[model.User, model.UserView]
 	GetByUsername(conn *gorm.DB, username string, preloads ...string) (tUser model.User, err error)
 	GetByEmail(conn *gorm.DB, email string, preloads ...string) (tUser model.User, err error)
 	GetByPhoneNumber(conn *gorm.DB, phoneNumber string, preloads ...string) (tUser model.User, err error)
-	GetViewById(conn *gorm.DB, id string, preloads ...string) (vUser model.UserView, err error)
 	GetViewByUsername(conn *gorm.DB, username string, preloads ...string) (vUser model.UserView, err error)
 	GetViewByEmail(conn *gorm.DB, email string, preloads ...string) (vUser model.UserView, err error)
 	GetViewByPhoneNumber(conn *gorm.DB, phoneNumber string, preloads ...string) (vUser model.UserView, err error)
-	Create(conn *gorm.DB, tUser model.User) error
-	Update(conn *gorm.DB, tUser model.User) error
-	Save(conn *gorm.DB, tUser model.User) error
-	Delete(conn *gorm.DB, tUser model.User) error
 	Page(conn *gorm.DB, req request.PageUser) (vUsers []model.UserView, count int64, err error)
 }
 
 type repository struct {
-}
-
-func (r repository) Name() string {
-	return "user"
-}
-
-func (r repository) GetTableById(conn *gorm.DB, id string, preloads ...string) (tUser model.User, err error) {
-	for _, preload := range preloads {
-		conn = conn.Preload(preload)
-	}
-	err = conn.Where("id = ? ", id).First(&tUser).Error
-	return tUser, err
+	base.Repository[model.User, model.UserView]
 }
 
 func (r repository) GetByUsername(conn *gorm.DB, username string, preloads ...string) (tUser model.User, err error) {
@@ -66,14 +50,6 @@ func (r repository) GetByPhoneNumber(conn *gorm.DB, phoneNumber string, preloads
 	return tUser, err
 }
 
-func (r repository) GetViewById(conn *gorm.DB, id string, preloads ...string) (vUser model.UserView, err error) {
-	for _, preload := range preloads {
-		conn = conn.Preload(preload)
-	}
-	err = conn.Where("id = ? ", id).First(&vUser).Error
-	return vUser, err
-}
-
 func (r repository) GetViewByUsername(conn *gorm.DB, username string, preloads ...string) (vUser model.UserView, err error) {
 	for _, preload := range preloads {
 		conn = conn.Preload(preload)
@@ -96,22 +72,6 @@ func (r repository) GetViewByPhoneNumber(conn *gorm.DB, phoneNumber string, prel
 	}
 	err = conn.Where("no_hp = ? ", phoneNumber).First(&vUser).Error
 	return vUser, err
-}
-
-func (r repository) Create(conn *gorm.DB, tUser model.User) error {
-	return conn.Create(&tUser).Error
-}
-
-func (r repository) Update(conn *gorm.DB, tUser model.User) error {
-	return conn.Model(&tUser).Updates(&tUser).Error
-}
-
-func (r repository) Save(conn *gorm.DB, tUser model.User) error {
-	return conn.Save(&tUser).Error
-}
-
-func (r repository) Delete(conn *gorm.DB, tUser model.User) error {
-	return conn.Delete(&tUser).Error
 }
 
 func (r repository) Page(conn *gorm.DB, req request.PageUser) (vUsers []model.UserView, count int64, err error) {
@@ -177,5 +137,7 @@ func (r repository) Page(conn *gorm.DB, req request.PageUser) (vUsers []model.Us
 }
 
 func NewRepository() Repository {
-	return repository{}
+	return &repository{
+		Repository: base.NewRepository[model.User, model.UserView]("user"),
+	}
 }
