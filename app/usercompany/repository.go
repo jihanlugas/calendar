@@ -2,25 +2,37 @@ package usercompany
 
 import (
 	"fmt"
-
-	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
-	base.Repository[model.Usercompany, model.UsercompanyView]
+	Name() string
+	GetTableById(conn *gorm.DB, id string) (tUsercompany model.Usercompany, err error)
 	GetCreatorByCompanyId(conn *gorm.DB, companyID string) (tUsercompany model.Usercompany, err error)
 	GetCompanyDefaultByUserId(conn *gorm.DB, userID string) (tUsercompany model.Usercompany, err error)
+	GetViewById(conn *gorm.DB, id string) (vUsercompany model.UsercompanyView, err error)
 	GetViewByUserIdAndCompanyId(conn *gorm.DB, userID, companyID string) (vUsercompany model.UsercompanyView, err error)
 	GetViewCreatorByCompanyId(conn *gorm.DB, companyID string) (vUsercompany model.UsercompanyView, err error)
 	GetViewCompanyDefaultByUserId(conn *gorm.DB, userID string) (vUsercompany model.UsercompanyView, err error)
+	Create(conn *gorm.DB, tUsercompany model.Usercompany) error
+	Update(conn *gorm.DB, tUsercompany model.Usercompany) error
+	Save(conn *gorm.DB, tUsercompany model.Usercompany) error
+	Delete(conn *gorm.DB, tUsercompany model.Usercompany) error
 	Page(conn *gorm.DB, req request.PageUsercompany) (tUsercompanies []model.UsercompanyView, count int64, err error)
 }
 
 type repository struct {
-	base.Repository[model.Usercompany, model.UsercompanyView]
+}
+
+func (r repository) Name() string {
+	return "usercompany"
+}
+
+func (r repository) GetTableById(conn *gorm.DB, id string) (tUsercompany model.Usercompany, err error) {
+	err = conn.Where("id = ? ", id).First(&tUsercompany).Error
+	return tUsercompany, err
 }
 
 func (r repository) GetCreatorByCompanyId(conn *gorm.DB, companyID string) (tUsercompany model.Usercompany, err error) {
@@ -36,6 +48,12 @@ func (r repository) GetCompanyDefaultByUserId(conn *gorm.DB, userID string) (tUs
 		First(&tUsercompany).Error
 	return tUsercompany, err
 }
+
+func (r repository) GetViewById(conn *gorm.DB, id string) (vUsercompany model.UsercompanyView, err error) {
+	err = conn.Where("id = ? ", id).First(&vUsercompany).Error
+	return vUsercompany, err
+}
+
 func (r repository) GetViewByUserIdAndCompanyId(conn *gorm.DB, userID, companyID string) (vUsercompany model.UsercompanyView, err error) {
 	err = conn.Where("user_id = ? ", userID).
 		Where("company_id = ? ", companyID).
@@ -55,6 +73,22 @@ func (r repository) GetViewCompanyDefaultByUserId(conn *gorm.DB, userID string) 
 		Where("is_default_company = ? ", true).
 		First(&vUsercompany).Error
 	return vUsercompany, err
+}
+
+func (r repository) Create(conn *gorm.DB, tUsercompany model.Usercompany) error {
+	return conn.Create(&tUsercompany).Error
+}
+
+func (r repository) Update(conn *gorm.DB, tUsercompany model.Usercompany) error {
+	return conn.Model(&tUsercompany).Updates(&tUsercompany).Error
+}
+
+func (r repository) Save(conn *gorm.DB, tUsercompany model.Usercompany) error {
+	return conn.Save(&tUsercompany).Error
+}
+
+func (r repository) Delete(conn *gorm.DB, tUsercompany model.Usercompany) error {
+	return conn.Delete(&tUsercompany).Error
 }
 
 func (r repository) Page(conn *gorm.DB, req request.PageUsercompany) (vUsercompanies []model.UsercompanyView, count int64, err error) {
@@ -90,7 +124,5 @@ func (r repository) Page(conn *gorm.DB, req request.PageUsercompany) (vUsercompa
 }
 
 func NewRepository() Repository {
-	return &repository{
-		Repository: base.NewRepository[model.Usercompany, model.UsercompanyView]("usercompany"),
-	}
+	return repository{}
 }

@@ -4,20 +4,69 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
-	base.Repository[model.Event, model.EventView]
+	Name() string
+	GetTableById(conn *gorm.DB, id string, preloads ...string) (tEvent model.Event, err error)
+	GetViewById(conn *gorm.DB, id string, preloads ...string) (vEvent model.EventView, err error)
+	Create(conn *gorm.DB, tEvent model.Event) error
+	Creates(conn *gorm.DB, tEvents []model.Event) error
+	Update(conn *gorm.DB, tEvent model.Event) error
+	Save(conn *gorm.DB, tEvent model.Event) error
+	Delete(conn *gorm.DB, tEvent model.Event) error
 	Page(conn *gorm.DB, req request.PageEvent) (vEvents []model.EventView, count int64, err error)
 	Timeline(conn *gorm.DB, req request.TimelineEvent) (vEvents []model.EventView, err error)
 }
 
 type repository struct {
-	base.Repository[model.Event, model.EventView]
+}
+
+func (r repository) Name() string {
+	return "event"
+}
+
+func (r repository) GetTableById(conn *gorm.DB, id string, preloads ...string) (tEvent model.Event, err error) {
+	for _, preload := range preloads {
+		conn = conn.Preload(preload)
+	}
+	err = conn.Where("id = ? ", id).First(&tEvent).Error
+	return tEvent, err
+}
+
+func (r repository) GetViewById(conn *gorm.DB, id string, preloads ...string) (vEvent model.EventView, err error) {
+	for _, preload := range preloads {
+		conn = conn.Preload(preload)
+	}
+	err = conn.Where("id = ? ", id).First(&vEvent).Error
+	return vEvent, err
+}
+
+func (r repository) Create(conn *gorm.DB, tEvent model.Event) error {
+	return conn.Create(&tEvent).Error
+}
+
+func (r repository) Creates(conn *gorm.DB, tEvents []model.Event) error {
+	return conn.Create(&tEvents).Error
+}
+
+func (r repository) Update(conn *gorm.DB, tEvent model.Event) error {
+	return conn.Model(&tEvent).Updates(&tEvent).Error
+}
+
+func (r repository) Save(conn *gorm.DB, tEvent model.Event) error {
+	return conn.Save(&tEvent).Error
+}
+
+func (r repository) Delete(conn *gorm.DB, tEvent model.Event) error {
+	return conn.Delete(&tEvent).Error
+}
+
+func (r repository) DeleteByOrderId(conn *gorm.DB, id string) error {
+	return conn.Where("order_id = ? ", id).Delete(&model.Event{}).Error
 }
 
 func (r repository) Page(conn *gorm.DB, req request.PageEvent) (vEvents []model.EventView, count int64, err error) {
@@ -116,7 +165,5 @@ func (r repository) Timeline(conn *gorm.DB, req request.TimelineEvent) (vEvents 
 }
 
 func NewRepository() Repository {
-	return &repository{
-		Repository: base.NewRepository[model.Event, model.EventView]("event"),
-	}
+	return &repository{}
 }
