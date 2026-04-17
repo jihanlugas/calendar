@@ -8,6 +8,8 @@ import (
 	"github.com/jihanlugas/calendar/app/company"
 	"github.com/jihanlugas/calendar/app/event"
 	"github.com/jihanlugas/calendar/app/listener"
+	"github.com/jihanlugas/calendar/app/order"
+	"github.com/jihanlugas/calendar/app/orderevent"
 	"github.com/jihanlugas/calendar/app/photo"
 	"github.com/jihanlugas/calendar/app/product"
 	"github.com/jihanlugas/calendar/app/property"
@@ -50,6 +52,8 @@ func Init() *echo.Echo {
 	unitRepository := unit.NewRepository()
 	propertypriceRepository := propertyprice.NewRepository()
 	eventRepository := event.NewRepository()
+	orderRepository := order.NewRepository()
+	ordereventRepository := orderevent.NewRepository()
 
 	// usecases
 	authUsecase := auth.NewUsecase(userRepository, companyRepository, usercompanyRepository)
@@ -59,7 +63,7 @@ func Init() *echo.Echo {
 	productUsecase := product.NewUsecase(productRepository)
 	propertyUsecase := property.NewUsecase(propertyRepository, propertytimelineRepository, unitRepository, propertypriceRepository)
 	unitUsecase := unit.NewUsecase(unitRepository)
-	eventUsecase := event.NewUsecase(eventRepository)
+	eventUsecase := event.NewUsecase(eventRepository, orderRepository, ordereventRepository)
 	propertypriceUsecase := propertyprice.NewUsecase(propertypriceRepository)
 
 	// handlers

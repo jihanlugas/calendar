@@ -4,68 +4,19 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
 	"gorm.io/gorm"
 )
 
 type Repository interface {
-	Name() string
-	GetTableById(conn *gorm.DB, id string, preloads ...string) (tUnit model.Unit, err error)
-	GetViewById(conn *gorm.DB, id string, preloads ...string) (vUnit model.UnitView, err error)
-	Create(conn *gorm.DB, tUnit model.Unit) error
-	Creates(conn *gorm.DB, tUnits []model.Unit) error
-	Update(conn *gorm.DB, tUnit model.Unit) error
-	Save(conn *gorm.DB, tUnit model.Unit) error
-	Delete(conn *gorm.DB, tUnit model.Unit) error
+	base.Repository[model.Unit, model.UnitView]
 	Page(conn *gorm.DB, req request.PageUnit) (vUnits []model.UnitView, count int64, err error)
 }
 
 type repository struct {
-}
-
-func (r repository) Name() string {
-	return "unit"
-}
-
-func (r repository) GetTableById(conn *gorm.DB, id string, preloads ...string) (tUnit model.Unit, err error) {
-	for _, preload := range preloads {
-		conn = conn.Preload(preload)
-	}
-	err = conn.Where("id = ? ", id).First(&tUnit).Error
-	return tUnit, err
-}
-
-func (r repository) GetViewById(conn *gorm.DB, id string, preloads ...string) (vUnit model.UnitView, err error) {
-	for _, preload := range preloads {
-		conn = conn.Preload(preload)
-	}
-	err = conn.Where("id = ? ", id).First(&vUnit).Error
-	return vUnit, err
-}
-
-func (r repository) Create(conn *gorm.DB, tUnit model.Unit) error {
-	return conn.Create(&tUnit).Error
-}
-
-func (r repository) Creates(conn *gorm.DB, tUnits []model.Unit) error {
-	return conn.Create(&tUnits).Error
-}
-
-func (r repository) Update(conn *gorm.DB, tUnit model.Unit) error {
-	return conn.Model(&tUnit).Updates(&tUnit).Error
-}
-
-func (r repository) Save(conn *gorm.DB, tUnit model.Unit) error {
-	return conn.Save(&tUnit).Error
-}
-
-func (r repository) Delete(conn *gorm.DB, tUnit model.Unit) error {
-	return conn.Delete(&tUnit).Error
-}
-
-func (r repository) DeleteByOrderId(conn *gorm.DB, id string) error {
-	return conn.Where("order_id = ? ", id).Delete(&model.Unit{}).Error
+	base.Repository[model.Unit, model.UnitView]
 }
 
 func (r repository) Page(conn *gorm.DB, req request.PageUnit) (vUnits []model.UnitView, count int64, err error) {
@@ -126,5 +77,7 @@ func (r repository) Page(conn *gorm.DB, req request.PageUnit) (vUnits []model.Un
 }
 
 func NewRepository() Repository {
-	return &repository{}
+	return &repository{
+		Repository: base.NewRepository[model.Unit, model.UnitView]("unit"),
+	}
 }

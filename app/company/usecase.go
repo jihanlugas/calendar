@@ -3,6 +3,7 @@ package company
 import (
 	"errors"
 	"fmt"
+
 	"github.com/jihanlugas/calendar/app/usercompany"
 	"github.com/jihanlugas/calendar/constant"
 	"github.com/jihanlugas/calendar/db"
@@ -38,7 +39,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCo
 
 	tCompany, err = u.repository.GetTableById(conn, id)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to get %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	switch loginUser.Role {
@@ -48,7 +49,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCo
 	case constant.RoleUseradmin:
 		vUsercompany, err := u.repositoryUsercompany.GetViewByUserIdAndCompanyId(conn, loginUser.UserID, loginUser.CompanyID)
 		if err != nil {
-			return errors.New(fmt.Sprintf("failed to get %s: %v", u.repositoryUsercompany.Name(), err))
+			return fmt.Errorf("failed to get %s: %v", u.repositoryUsercompany.Name(), err)
 		}
 
 		if jwt.IsSaveCompanyIDOR(loginUser, vUsercompany.CompanyID) {
@@ -68,7 +69,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCo
 	tCompany.UpdateBy = loginUser.UserID
 	err = u.repository.Save(tx, tCompany)
 	if err != nil {
-		return errors.New(fmt.Sprintf("failed to update %s: %v", u.repository.Name(), err))
+		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error
