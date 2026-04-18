@@ -6,6 +6,7 @@ import (
 
 	"github.com/jihanlugas/calendar/app/order"
 	"github.com/jihanlugas/calendar/app/orderevent"
+	"github.com/jihanlugas/calendar/constant"
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
@@ -21,6 +22,7 @@ type Usecase interface {
 	Create(loginUser jwt.UserLogin, req request.CreateEvent) error
 	Update(loginUser jwt.UserLogin, id string, req request.UpdateEvent) error
 	Delete(loginUser jwt.UserLogin, id string) error
+	Confirm(loginUser jwt.UserLogin, id string) error
 }
 
 type usecase struct {
@@ -165,6 +167,10 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEv
 		return errors.New(response.ErrorHandlerIDOR)
 	}
 
+	if tEvent.Status == constant.EVENT_STATUS_CONFIRM && req.Status == constant.EVENT_STATUS_HOLD {
+		return errors.New("cannot change event status from confirm to hold")
+	}
+
 	tx := conn.Begin()
 
 	tEvent.UnitID = req.UnitID
@@ -208,6 +214,43 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 	err = u.repository.Delete(tx, tEvent)
 	if err != nil {
 		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
+	}
+
+	err = tx.Commit().Error
+	if err != nil {
+		return err
+	}
+
+	return err
+}
+
+func (u usecase) Confirm(loginUser jwt.UserLogin, id string) error {
+	var err error
+	var tEvent model.Event
+
+	conn, closeConn := db.GetConnection()
+	defer closeConn()
+
+	tEvent, err = u.repository.GetTableById(conn, id)
+	if err != nil {
+		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
+	}
+
+	if jwt.IsSaveCompanyIDOR(loginUser, tEvent.CompanyID) {
+		return errors.New(response.ErrorHandlerIDOR)
+	}
+
+	if tEvent.Status != constant.EVENT_STATUS_HOLD {
+		return errors.New("only event with hold status can be confirmed")
+	}
+
+	tx := conn.Begin()
+
+	tEvent.Status = constant.EVENT_STATUS_CONFIRM
+	tEvent.UpdateBy = loginUser.UserID
+	err = u.repository.Save(tx, tEvent)
+	if err != nil {
+		return fmt.Errorf("failed to confirm %s: %v", u.repository.Name(), err)
 	}
 
 	err = tx.Commit().Error

@@ -265,3 +265,34 @@ func (h Handler) Delete(c echo.Context) error {
 
 	return response.Success(http.StatusOK, "Successfully deleted event", nil).SendJSON(c)
 }
+
+// Confirm
+// @Tags Event
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path string true "ID"
+// @Query preloads query string false "preloads"
+// @Success      200  {object}	response.Response
+// @Failure      500  {object}  response.Response
+// @Router /event/{id}/confirm [POST]
+func (h Handler) Confirm(c echo.Context) error {
+	var err error
+
+	loginUser, err := jwt.GetUserLoginInfo(c)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
+	}
+
+	id := strings.TrimSpace(c.Param("id"))
+	if id == "" {
+		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
+	}
+
+	err = h.usecase.Confirm(loginUser, id)
+	if err != nil {
+		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
+	}
+
+	return response.Success(http.StatusOK, "Successfully confirmed event", nil).SendJSON(c)
+}

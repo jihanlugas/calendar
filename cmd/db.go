@@ -831,9 +831,8 @@ func dbSeed() {
 				StartDt:      startDt,
 				EndDt:        endDt,
 				Status:       status,
-				// Price:       price,
-				CreateBy: adminID,
-				UpdateBy: adminID,
+				CreateBy:     adminID,
+				UpdateBy:     adminID,
 			}
 
 			order := model.Order{

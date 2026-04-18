@@ -141,6 +141,7 @@ func Init() *echo.Echo {
 	routerEvent.PUT("/:id", eventHandler.Update)
 	routerEvent.GET("/:id", eventHandler.GetById)
 	routerEvent.DELETE("/:id", eventHandler.Delete)
+	routerEvent.POST("/:id/confirm", eventHandler.Confirm)
 
 	routerWebsocket := router.Group("/ws")
 	routerWebsocket.GET("", websocketHandler.Serve)
