@@ -164,6 +164,7 @@ type Event struct {
 	CompanyID    string               `gorm:"not null" json:"company_id"`
 	PropertyID   string               `gorm:"not null" json:"property_id"`
 	UnitID       string               `gorm:"not null" json:"unit_id"`
+	OrderID      string               `gorm:"not null" json:"order_id"`
 	OrdereventID string               `gorm:"not null" json:"orderevent_id"`
 	Name         string               `gorm:"not null" json:"name"`
 	Description  string               `gorm:"not null" json:"description"`
@@ -230,12 +231,6 @@ type Discount struct {
 type Order struct {
 	ID        string         `gorm:"primaryKey"`
 	CompanyID string         `gorm:"not null"`
-	Tax       int64          `gorm:"not null"`
-	Discount  int64          `gorm:"not null"`
-	Rounding  int64          `gorm:"not null"`
-	Subtotal  int64          `gorm:"not null"` // OrderEvent + OrderProduct
-	Total     int64          `gorm:"not null"` // Subtotal + Tax - Discount
-	Payment   int64          `gorm:"not null"`
 	CreateBy  string         `gorm:"not null"`
 	CreateDt  time.Time      `gorm:"not null"`
 	UpdateBy  string         `gorm:"not null"`
@@ -247,6 +242,7 @@ type Orderevent struct {
 	ID        string         `gorm:"primaryKey"`
 	CompanyID string         `gorm:"not null"`
 	OrderID   string         `gorm:"not null"`
+	UnitID    string         `gorm:"not null"`
 	EventID   string         `gorm:"not null"`
 	Total     int64          `gorm:"not null"`
 	CreateBy  string         `gorm:"not null"`

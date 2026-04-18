@@ -264,6 +264,7 @@ func dbUpView() {
 		Joins("left join companies companies on companies.id = events.company_id").
 		Joins("left join properties properties on properties.id = events.property_id").
 		Joins("left join units units on units.id = events.unit_id").
+		Joins("left join orders orders on orders.id = events.order_id").
 		Joins("left join orderevents orderevents on orderevents.id = events.orderevent_id").
 		Joins("left join users u1 on u1.id = events.create_by").
 		Joins("left join users u2 on u2.id = events.update_by")
@@ -334,11 +335,58 @@ func dbUpView() {
 	if err != nil {
 		panic(err)
 	}
-	vOrder := conn.Model(&model.Order{}).Unscoped().
-		Select("orders.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
+	subQuery := conn.Model(&model.Order{}).Unscoped().
+		Select("orders.*" +
+			", companies.name as company_name" +
+			", u1.fullname as create_name" +
+			", u2.fullname as update_name" +
+			", coalesce(orderevents.total, 0) as total_orderevent" +
+			", coalesce(orderproducts.total, 0) as total_orderproduct" +
+			", coalesce(orderdiscounts.total, 0) as discount" +
+			", coalesce(ordertaxes.total, 0) as tax" +
+			", 0 as rounding" +
+			", coalesce(orderevents.total, 0) + coalesce(orderproducts.total, 0) as subtotal" +
+			", coalesce(orderpayments.total, 0) as payment").
 		Joins("left join companies companies on companies.id = orders.company_id").
+		Joins(`left join (
+		select orderevents.order_id, COALESCE(sum(orderevents.total), 0) as total
+		from orderevents
+		where orderevents.delete_dt is null
+		group by orderevents.order_id
+	) as orderevents on orderevents.order_id = orders.id`).
+		Joins(`left join (
+		select orderproducts.order_id, COALESCE(sum(orderproducts.total), 0) as total
+		from orderproducts
+		where orderproducts.delete_dt is null
+		group by orderproducts.order_id
+	) as orderproducts on orderproducts.order_id = orders.id`).
+		Joins(`left join (
+		select orderdiscounts.order_id, COALESCE(sum(orderdiscounts.total), 0) as total
+		from orderdiscounts
+		where orderdiscounts.delete_dt is null
+		group by orderdiscounts.order_id
+	) as orderdiscounts on orderdiscounts.order_id = orders.id`).
+		Joins(`left join (
+		select ordertaxes.order_id, COALESCE(sum(ordertaxes.total), 0) as total
+		from ordertaxes
+		where ordertaxes.delete_dt is null
+		group by ordertaxes.order_id
+	) as ordertaxes on ordertaxes.order_id = orders.id`).
+		Joins(`left join (
+		select orderpayments.order_id, COALESCE(sum(orderpayments.total), 0) as total
+		from orderpayments
+		where orderpayments.delete_dt is null
+		group by orderpayments.order_id
+	) as orderpayments on orderpayments.order_id = orders.id`).
 		Joins("left join users u1 on u1.id = orders.create_by").
 		Joins("left join users u2 on u2.id = orders.update_by")
+
+	vOrder := conn.Table("(?) as t", subQuery).
+		Select(`
+		t.*,
+		t.subtotal - t.discount + t.tax + t.rounding as total,
+		(t.subtotal - t.discount + t.tax + t.rounding) - t.payment as outstanding
+	`)
 
 	err = conn.Migrator().CreateView(model.VIEW_ORDER, gorm.ViewOption{
 		Replace: true,
@@ -353,8 +401,9 @@ func dbUpView() {
 		panic(err)
 	}
 	vOrderevent := conn.Model(&model.Orderevent{}).Unscoped().
-		Select("orderevents.*, companies.name as company_name, events.name as event_name, u1.fullname as create_name, u2.fullname as update_name").
+		Select("orderevents.*, companies.name as company_name, units.name as unit_name, events.name as event_name, u1.fullname as create_name, u2.fullname as update_name").
 		Joins("left join companies companies on companies.id = orderevents.company_id").
+		Joins("left join units units on units.id = orderevents.unit_id").
 		Joins("left join events events on events.id = orderevents.event_id").
 		Joins("left join users u1 on u1.id = orderevents.create_by").
 		Joins("left join users u2 on u2.id = orderevents.update_by")
@@ -802,7 +851,6 @@ func dbSeed() {
 			}
 
 			status := constant.EVENT_STATUS_CONFIRM
-			ordereventId := utils.GetUniqueID()
 			rand := utils.GetRandomNumber(1, 30) % 2
 			switch rand {
 			case 0:
@@ -820,12 +868,18 @@ func dbSeed() {
 			if err != nil {
 				fmt.Println("ERR => ", err)
 			}
+
+			eventID := utils.GetUniqueID()
+			orderID := utils.GetUniqueID()
+			ordereventID := utils.GetUniqueID()
+
 			event := model.Event{
-				ID:           utils.GetUniqueID(),
+				ID:           eventID,
 				PropertyID:   unit.PropertyID,
 				UnitID:       unit.ID,
 				CompanyID:    companyID,
-				OrdereventID: ordereventId,
+				OrderID:      orderID,
+				OrdereventID: ordereventID,
 				Name:         fmt.Sprintf("Event %d", j+1),
 				Description:  fmt.Sprintf("Generated Data Event %d", j+1),
 				StartDt:      startDt,
@@ -836,23 +890,18 @@ func dbSeed() {
 			}
 
 			order := model.Order{
-				ID:        utils.GetUniqueID(),
+				ID:        orderID,
 				CompanyID: companyID,
-				Tax:       0,
-				Discount:  0,
-				Rounding:  0,
-				Subtotal:  price,
-				Total:     price,
-				Payment:   0,
 				CreateBy:  adminID,
 				UpdateBy:  adminID,
 			}
 			orders = append(orders, order)
 
 			orderevent := model.Orderevent{
-				ID:        ordereventId,
-				OrderID:   order.ID,
-				EventID:   event.ID,
+				ID:        ordereventID,
+				OrderID:   orderID,
+				EventID:   eventID,
+				UnitID:    unit.ID,
 				CompanyID: companyID,
 				Total:     price,
 				CreateBy:  adminID,

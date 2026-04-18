@@ -239,6 +239,7 @@ type EventView struct {
 	CompanyID    string               `json:"companyId"`
 	PropertyID   string               `json:"propertyId"`
 	UnitID       string               `json:"unitId"`
+	OrderID      string               `json:"orderId"`
 	OrdereventID string               `json:"ordereventId"`
 	Name         string               `json:"name"`
 	Description  string               `json:"description"`
@@ -260,6 +261,7 @@ type EventView struct {
 	Company    *CompanyView    `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
 	Property   *PropertyView   `json:"property,omitempty" gorm:"foreignKey:PropertyID"`
 	Unit       *UnitView       `json:"unit,omitempty"`
+	Order      *OrderView      `json:"order,omitempty" gorm:"foreignKey:OrderID"`
 	Orderevent *OrdereventView `json:"orderevent,omitempty" gorm:"foreignKey:OrdereventID"`
 }
 
@@ -373,6 +375,7 @@ type OrdereventView struct {
 	ID         string         `json:"id"`
 	CompanyID  string         `json:"companyId"`
 	OrderID    string         `json:"orderId"`
+	UnitID     string         `json:"unitId"`
 	EventID    string         `json:"eventId"`
 	Total      int64          `json:"total"`
 	CreateBy   string         `json:"createBy"`
@@ -381,6 +384,7 @@ type OrdereventView struct {
 	UpdateDt   time.Time      `json:"updateDt"`
 	DeleteDt   gorm.DeletedAt `json:"deleteDt"`
 	OrderName  string         `json:"orderName"`
+	UnitName   string         `json:"unitName"`
 	EventName  string         `json:"eventName"`
 	CreateName string         `json:"createName"`
 	UpdateName string         `json:"updateName"`
@@ -388,6 +392,7 @@ type OrdereventView struct {
 	Company *CompanyView `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
 	Order   *OrderView   `json:"order,omitempty" gorm:"foreignKey:OrderID"`
 	Event   *EventView   `json:"event,omitempty" gorm:"foreignKey:EventID"`
+	Unit    *UnitView    `json:"unit,omitempty" gorm:"foreignKey:UnitID"`
 }
 
 func (OrdereventView) TableName() string {
@@ -401,6 +406,7 @@ type OrderproductView struct {
 	ProductID   string         `json:"productId"`
 	Quantity    int            `json:"quantity"`
 	Price       int64          `json:"price"`
+	Total       int64          `json:"total"`
 	CreateBy    string         `json:"createBy"`
 	CreateDt    time.Time      `json:"createDt"`
 	UpdateBy    string         `json:"updateBy"`

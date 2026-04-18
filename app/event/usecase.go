@@ -92,37 +92,38 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 
 	tx := conn.Begin()
 
+	eventID := utils.GetUniqueID()
+	orderID := utils.GetUniqueID()
+	ordereventID := utils.GetUniqueID()
+
 	tEvent = model.Event{
-		ID:          utils.GetUniqueID(),
-		CompanyID:   req.CompanyID,
-		PropertyID:  req.PropertyID,
-		UnitID:      req.UnitID,
-		Name:        req.Name,
-		Description: req.Description,
-		StartDt:     req.StartDt,
-		EndDt:       req.EndDt,
-		Status:      req.Status,
-		CreateBy:    loginUser.UserID,
-		UpdateBy:    loginUser.UserID,
+		ID:           eventID,
+		CompanyID:    req.CompanyID,
+		PropertyID:   req.PropertyID,
+		UnitID:       req.UnitID,
+		OrderID:      orderID,
+		OrdereventID: ordereventID,
+		Name:         req.Name,
+		Description:  req.Description,
+		StartDt:      req.StartDt,
+		EndDt:        req.EndDt,
+		Status:       req.Status,
+		CreateBy:     loginUser.UserID,
+		UpdateBy:     loginUser.UserID,
 	}
 
 	tOrder := model.Order{
-		ID:        utils.GetUniqueID(),
+		ID:        orderID,
 		CompanyID: req.CompanyID,
-		Tax:       0,
-		Discount:  0,
-		Rounding:  0,
-		Subtotal:  req.Price,
-		Total:     req.Price,
-		Payment:   0,
 		CreateBy:  loginUser.UserID,
 		UpdateBy:  loginUser.UserID,
 	}
 
 	tOrderevent := model.Orderevent{
-		ID:       utils.GetUniqueID(),
-		OrderID:  tOrder.ID,
-		EventID:  tEvent.ID,
+		ID:       ordereventID,
+		OrderID:  orderID,
+		UnitID:   req.UnitID,
+		EventID:  eventID,
 		Total:    req.Price,
 		CreateBy: loginUser.UserID,
 		UpdateBy: loginUser.UserID,
