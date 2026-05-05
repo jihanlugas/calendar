@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/jihanlugas/calendar/constant"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/request"
 	"github.com/jihanlugas/calendar/response"
@@ -51,12 +52,8 @@ func (h Handler) Page(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerFailedValidation, err, response.ValidationError(err)).SendJSON(c)
 	}
 
-	if req.CompanyID == "" {
+	if loginUser.Role != constant.RoleAdmin {
 		req.CompanyID = loginUser.CompanyID
-	} else {
-		if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-			return response.Error(http.StatusBadRequest, response.ErrorHandlerIDOR, err, nil).SendJSON(c)
-		}
 	}
 
 	data, count, err := h.usecase.Page(loginUser, *req)
@@ -97,12 +94,8 @@ func (h Handler) Timeline(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerFailedValidation, err, response.ValidationError(err)).SendJSON(c)
 	}
 
-	if req.CompanyID == "" {
+	if loginUser.Role != constant.RoleAdmin {
 		req.CompanyID = loginUser.CompanyID
-	} else {
-		if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-			return response.Error(http.StatusBadRequest, response.ErrorHandlerIDOR, err, nil).SendJSON(c)
-		}
 	}
 
 	vEvents, err := h.usecase.Timeline(loginUser, *req)
@@ -180,8 +173,8 @@ func (h Handler) Create(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerFailedValidation, err, response.ValidationError(err)).SendJSON(c)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return response.Error(http.StatusBadRequest, response.ErrorHandlerIDOR, err, nil).SendJSON(c)
+	if loginUser.Role != constant.RoleAdmin {
+		req.CompanyID = loginUser.CompanyID
 	}
 
 	err = h.usecase.Create(loginUser, *req)

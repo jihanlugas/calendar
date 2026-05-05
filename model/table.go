@@ -294,14 +294,16 @@ type Orderdiscount struct {
 }
 
 type Orderpayment struct {
-	ID              string         `gorm:"primaryKey"`
-	CompanyID       string         `gorm:"not null"`
-	OrderID         string         `gorm:"not null"`
-	PaymentmethodID string         `gorm:"not null"`
-	Total           int64          `gorm:"not null"`
-	CreateBy        string         `gorm:"not null"`
-	CreateDt        time.Time      `gorm:"not null"`
-	UpdateBy        string         `gorm:"not null"`
-	UpdateDt        time.Time      `gorm:"not null"`
-	DeleteDt        gorm.DeletedAt `gorm:"null"`
+	ID                     string         `gorm:"primaryKey"`
+	CompanyID              string         `gorm:"not null"`
+	OrderID                string         `gorm:"not null"`
+	PaymentmethodID        string         `gorm:"not null"`
+	CompanypaymentmethodID string         `gorm:"not null"`
+	Name                   string         `gorm:"not null"`
+	Total                  int64          `gorm:"not null"`
+	CreateBy               string         `gorm:"not null"`
+	CreateDt               time.Time      `gorm:"not null"`
+	UpdateBy               string         `gorm:"not null"`
+	UpdateDt               time.Time      `gorm:"not null"`
+	DeleteDt               gorm.DeletedAt `gorm:"null"`
 }

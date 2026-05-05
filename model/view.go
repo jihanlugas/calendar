@@ -350,6 +350,7 @@ type OrderView struct {
 	Subtotal    int64          `json:"subtotal"`
 	Total       int64          `json:"total"`
 	Payment     int64          `json:"payment"`
+	Outstanding int64          `json:"outstanding"`
 	CreateBy    string         `json:"createBy"`
 	CreateDt    time.Time      `json:"createDt"`
 	UpdateBy    string         `json:"updateBy"`
@@ -477,24 +478,27 @@ func (OrderdiscountView) TableName() string {
 }
 
 type OrderpaymentView struct {
-	ID                string         `json:"id"`
-	CompanyID         string         `json:"companyId"`
-	OrderID           string         `json:"orderId"`
-	PaymentmethodID   string         `json:"paymentmethodId"`
-	Total             int64          `json:"total"`
-	CreateBy          string         `json:"createBy"`
-	CreateDt          time.Time      `json:"createDt"`
-	UpdateBy          string         `json:"updateBy"`
-	UpdateDt          time.Time      `json:"updateDt"`
-	DeleteDt          gorm.DeletedAt `json:"deleteDt"`
-	OrderName         string         `json:"orderName"`
-	PaymentmethodName string         `json:"paymentmethodName"`
-	CreateName        string         `json:"createName"`
-	UpdateName        string         `json:"updateName"`
+	ID                     string         `json:"id"`
+	Name                   string         `json:"name"`
+	CompanyID              string         `json:"companyId"`
+	OrderID                string         `json:"orderId"`
+	PaymentmethodID        string         `json:"paymentmethodId"`
+	CompanypaymentmethodID string         `json:"companypaymentmethodId"`
+	Total                  int64          `json:"total"`
+	CreateBy               string         `json:"createBy"`
+	CreateDt               time.Time      `json:"createDt"`
+	UpdateBy               string         `json:"updateBy"`
+	UpdateDt               time.Time      `json:"updateDt"`
+	DeleteDt               gorm.DeletedAt `json:"deleteDt"`
+	OrderName              string         `json:"orderName"`
+	PaymentmethodName      string         `json:"paymentmethodName"`
+	CreateName             string         `json:"createName"`
+	UpdateName             string         `json:"updateName"`
 
-	Company       *CompanyView       `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
-	Order         *OrderView         `json:"order,omitempty" gorm:"foreignKey:OrderID"`
-	Paymentmethod *PaymentmethodView `json:"paymentmethod,omitempty" gorm:"foreignKey:PaymentmethodID"`
+	Company              *CompanyView              `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Order                *OrderView                `json:"order,omitempty" gorm:"foreignKey:OrderID"`
+	Paymentmethod        *PaymentmethodView        `json:"paymentmethod,omitempty" gorm:"foreignKey:PaymentmethodID"`
+	Companypaymentmethod *CompanypaymentmethodView `json:"companypaymentmethod,omitempty" gorm:"foreignKey:CompanypaymentmethodID"`
 }
 
 func (OrderpaymentView) TableName() string {

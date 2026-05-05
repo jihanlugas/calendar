@@ -1,4 +1,4 @@
-package user
+package companypaymentmethod
 
 import (
 	"net/http"
@@ -23,14 +23,14 @@ func NewHandler(usecase Usecase) Handler {
 }
 
 // Page
-// @Tags User
+// @Tags Comanypaymentmethod
 // @Security BearerAuth
 // @Accept json
 // @Produce json
-// @Param req query request.PageUser false "url query string"
+// @Param req query request.PageComanypaymentmethod false "url query string"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /user [get]
+// @Router /companypaymentmethod [get]
 func (h Handler) Page(c echo.Context) error {
 	var err error
 
@@ -39,7 +39,7 @@ func (h Handler) Page(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
 	}
 
-	req := new(request.PageUser)
+	req := new(request.PageCompanypaymentmethod)
 	err = c.Bind(req)
 	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
@@ -61,11 +61,11 @@ func (h Handler) Page(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, "Successfully retrieved user list", response.PayloadPagination(req, data, count)).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully retrieved companypaymentmethod list", response.PayloadPagination(req, data, count)).SendJSON(c)
 }
 
 // GetById
-// @Tags User
+// @Tags Companypaymentmethod
 // @Security BearerAuth
 // @Accept json
 // @Produce json
@@ -73,7 +73,7 @@ func (h Handler) Page(c echo.Context) error {
 // @Query preloads query string false "preloads"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /user/{id} [get]
+// @Router /companypaymentmethod/{id} [get]
 func (h Handler) GetById(c echo.Context) error {
 	var err error
 
@@ -93,23 +93,23 @@ func (h Handler) GetById(c echo.Context) error {
 		preloadSlice = strings.Split(preloads, ",")
 	}
 
-	vUser, err := h.usecase.GetById(loginUser, id, preloadSlice...)
+	vCompanypaymentmethod, err := h.usecase.GetById(loginUser, id, preloadSlice...)
 	if err != nil {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, "Successfully retrieved user detail", vUser).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully retrieved companypaymentmethod detail", vCompanypaymentmethod).SendJSON(c)
 }
 
 // Create
-// @Tags User
+// @Tags Companypaymentmethod
 // @Security BearerAuth
 // @Accept json
 // @Produce json
-// @Param req body request.CreateUser true "json req body"
+// @Param req body request.CreateCompanypaymentmethod true "json req body"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /user [post]
+// @Router /companypaymentmethod [post]
 func (h Handler) Create(c echo.Context) error {
 	var err error
 
@@ -118,7 +118,7 @@ func (h Handler) Create(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
 	}
 
-	req := new(request.CreateUser)
+	req := new(request.CreateCompanypaymentmethod)
 	err = c.Bind(req)
 	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
@@ -140,19 +140,19 @@ func (h Handler) Create(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, "Successfully created user", nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully created companypaymentmethod", nil).SendJSON(c)
 }
 
 // Update
-// @Tags User
+// @Tags Companypaymentmethod
 // @Security BearerAuth
 // @Accept json
 // @Produce json
 // @Param id path string true "ID"
-// @Param req body request.UpdateUser true "json req body"
+// @Param req body request.UpdateCompanypaymentmethod true "json req body"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /user/{id} [put]
+// @Router /companypaymentmethod/{id} [put]
 func (h Handler) Update(c echo.Context) error {
 	var err error
 
@@ -166,7 +166,7 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
 	}
 
-	req := new(request.UpdateUser)
+	req := new(request.UpdateCompanypaymentmethod)
 	err = c.Bind(req)
 	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
@@ -184,56 +184,18 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, "Successfully updated user", nil).SendJSON(c)
-}
-
-// ChangePassword
-// @Tags User
-// @Security BearerAuth
-// @Accept json
-// @Produce json
-// @Param req body request.ChangePassword true "json req body"
-// @Success      200  {object}	response.Response
-// @Failure      500  {object}  response.Response
-// @Router /user/change-password [post]
-func (h Handler) ChangePassword(c echo.Context) error {
-	var err error
-
-	loginUser, err := jwt.GetUserLoginInfo(c)
-	if err != nil {
-		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
-	}
-
-	req := new(request.ChangePassword)
-	err = c.Bind(req)
-	if err != nil {
-		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
-	}
-
-	utils.TrimWhitespace(req)
-
-	err = c.Validate(req)
-	if err != nil {
-		return response.Error(http.StatusBadRequest, response.ErrorHandlerFailedValidation, err, response.ValidationError(err)).SendJSON(c)
-	}
-
-	err = h.usecase.ChangePassword(loginUser, *req)
-	if err != nil {
-		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
-	}
-
-	return response.Success(http.StatusOK, "Successfully changed password", nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully updated companypaymentmethod", nil).SendJSON(c)
 }
 
 // Delete
-// @Tags User
+// @Tags Companypaymentmethod
 // @Security BearerAuth
 // @Accept json
 // @Produce json
 // @Param id path string true "ID"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /user/{id} [delete]
+// @Router /companypaymentmethod/{id} [delete]
 func (h Handler) Delete(c echo.Context) error {
 	var err error
 
@@ -252,5 +214,5 @@ func (h Handler) Delete(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, "Successfully deleted user", nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully deleted companypaymentmethod", nil).SendJSON(c)
 }

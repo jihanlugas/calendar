@@ -163,6 +163,25 @@ func dbUpView() {
 		panic(err)
 	}
 
+	err = conn.Migrator().DropView(model.VIEW_COMPANYPAYMENTMETHOD)
+	if err != nil {
+		panic(err)
+	}
+	vCompanypaymentmethod := conn.Model(&model.Companypaymentmethod{}).Unscoped().
+		Select("companypaymentmethods.*, companies.name as company_name, paymentmethods.name as paymentmethod_name, '' as photo_url, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = companypaymentmethods.company_id").
+		Joins("left join paymentmethods paymentmethods on paymentmethods.id = companypaymentmethods.paymentmethod_id").
+		Joins("left join users u1 on u1.id = companypaymentmethods.create_by").
+		Joins("left join users u2 on u2.id = companypaymentmethods.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_COMPANYPAYMENTMETHOD, gorm.ViewOption{
+		Replace: true,
+		Query:   vCompanypaymentmethod,
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	err = conn.Migrator().DropView(model.VIEW_USERCOMPANY)
 	if err != nil {
 		panic(err)
@@ -481,6 +500,7 @@ func dbUpView() {
 		Select("orderpayments.*, companies.name as company_name, paymentmethods.name as paymentmethod_name, u1.fullname as create_name, u2.fullname as update_name").
 		Joins("left join companies companies on companies.id = orderpayments.company_id").
 		Joins("left join paymentmethods paymentmethods on paymentmethods.id = orderpayments.paymentmethod_id").
+		Joins("left join companypaymentmethods companypaymentmethods on companypaymentmethods.id = orderpayments.companypaymentmethod_id").
 		Joins("left join users u1 on u1.id = orderpayments.create_by").
 		Joins("left join users u2 on u2.id = orderpayments.update_by")
 

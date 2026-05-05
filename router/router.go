@@ -6,10 +6,12 @@ import (
 
 	"github.com/jihanlugas/calendar/app/auth"
 	"github.com/jihanlugas/calendar/app/company"
+	"github.com/jihanlugas/calendar/app/companypaymentmethod"
 	"github.com/jihanlugas/calendar/app/event"
 	"github.com/jihanlugas/calendar/app/listener"
 	"github.com/jihanlugas/calendar/app/order"
 	"github.com/jihanlugas/calendar/app/orderevent"
+	"github.com/jihanlugas/calendar/app/orderpayment"
 	"github.com/jihanlugas/calendar/app/photo"
 	"github.com/jihanlugas/calendar/app/product"
 	"github.com/jihanlugas/calendar/app/property"
@@ -45,6 +47,7 @@ func Init() *echo.Echo {
 	photoRepository := photo.NewRepository()
 	userRepository := user.NewRepository()
 	companyRepository := company.NewRepository()
+	companypaymentmethodRepository := companypaymentmethod.NewRepository()
 	usercompanyRepository := usercompany.NewRepository()
 	productRepository := product.NewRepository()
 	propertyRepository := property.NewRepository()
@@ -54,22 +57,26 @@ func Init() *echo.Echo {
 	eventRepository := event.NewRepository()
 	orderRepository := order.NewRepository()
 	ordereventRepository := orderevent.NewRepository()
+	orderpaymentRepository := orderpayment.NewRepository()
 
 	// usecases
 	authUsecase := auth.NewUsecase(userRepository, companyRepository, usercompanyRepository)
 	photoUsecase := photo.NewUsecase(photoRepository)
 	userUsecase := user.NewUsecase(userRepository, usercompanyRepository)
 	companyUsecase := company.NewUsecase(companyRepository, usercompanyRepository)
+	companypaymentmethodUsecase := companypaymentmethod.NewUsecase(companypaymentmethodRepository)
 	productUsecase := product.NewUsecase(productRepository)
 	propertyUsecase := property.NewUsecase(propertyRepository, propertytimelineRepository, unitRepository, propertypriceRepository)
 	unitUsecase := unit.NewUsecase(unitRepository)
 	eventUsecase := event.NewUsecase(eventRepository, orderRepository, ordereventRepository)
 	propertypriceUsecase := propertyprice.NewUsecase(propertypriceRepository)
+	orderpaymentUsecase := orderpayment.NewUsecase(orderpaymentRepository, companypaymentmethodRepository)
 
 	// handlers
 	authHandler := auth.NewHandler(authUsecase)
 	photoHandler := photo.NewHandler(photoUsecase)
 	companyHandler := company.NewHandler(companyUsecase)
+	companypaymentmethodHandler := companypaymentmethod.NewHandler(companypaymentmethodUsecase)
 	userHandler := user.NewHandler(userUsecase)
 	propertyHandler := property.NewHandler(propertyUsecase)
 	productHandler := product.NewHandler(productUsecase)
@@ -77,6 +84,7 @@ func Init() *echo.Echo {
 	eventHandler := event.NewHandler(eventUsecase)
 	websocketHandler := websocket.NewHandler(hubManager)
 	propertypriceHandler := propertyprice.NewHandler(propertypriceUsecase)
+	orderpaymentHandler := orderpayment.NewHandler(orderpaymentUsecase)
 
 	if config.Debug {
 		router.GET("/", func(c echo.Context) error {
@@ -104,6 +112,13 @@ func Init() *echo.Echo {
 
 	routerCompany := router.Group("/company", checkTokenMiddleware)
 	routerCompany.PUT("/:id", companyHandler.Update)
+
+	routerCompanypaymentmethod := router.Group("/companypaymentmethod", checkTokenMiddleware)
+	routerCompanypaymentmethod.GET("", companypaymentmethodHandler.Page)
+	routerCompanypaymentmethod.POST("", companypaymentmethodHandler.Create)
+	routerCompanypaymentmethod.PUT("/:id", companypaymentmethodHandler.Update)
+	routerCompanypaymentmethod.GET("/:id", companypaymentmethodHandler.GetById)
+	routerCompanypaymentmethod.DELETE("/:id", companypaymentmethodHandler.Delete)
 
 	routerProperty := router.Group("/property", checkTokenMiddleware)
 	routerProperty.GET("", propertyHandler.Page)
@@ -142,6 +157,9 @@ func Init() *echo.Echo {
 	routerEvent.GET("/:id", eventHandler.GetById)
 	routerEvent.DELETE("/:id", eventHandler.Delete)
 	routerEvent.POST("/:id/confirm", eventHandler.Confirm)
+
+	routerOrderpayment := router.Group("/orderpayment", checkTokenMiddleware)
+	routerOrderpayment.POST("", orderpaymentHandler.Create)
 
 	routerWebsocket := router.Group("/ws")
 	routerWebsocket.GET("", websocketHandler.Serve)

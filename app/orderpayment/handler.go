@@ -1,8 +1,7 @@
-package company
+package orderpayment
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/request"
@@ -21,17 +20,16 @@ func NewHandler(usecase Usecase) Handler {
 	}
 }
 
-// Update
-// @Tags Company
+// Create
+// @Tags Orderpayment
 // @Security BearerAuth
 // @Accept json
 // @Produce json
-// @Param id path string true "ID"
-// @Param req body request.UpdateCompany true "json req body"
+// @Param req body request.CreateOrderpayment true "json req body"
 // @Success      200  {object}	response.Response
 // @Failure      500  {object}  response.Response
-// @Router /company/{id} [put]
-func (h Handler) Update(c echo.Context) error {
+// @Router /orderpayment [post]
+func (h Handler) Create(c echo.Context) error {
 	var err error
 
 	loginUser, err := jwt.GetUserLoginInfo(c)
@@ -39,12 +37,7 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetUserInfo, err, nil).SendJSON(c)
 	}
 
-	id := strings.TrimSpace(c.Param("id"))
-	if id == "" {
-		return response.Error(http.StatusBadRequest, response.ErrorHandlerGetParam, err, nil).SendJSON(c)
-	}
-
-	req := new(request.UpdateCompany)
+	req := new(request.CreateOrderpayment)
 	err = c.Bind(req)
 	if err != nil {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerBind, err, nil).SendJSON(c)
@@ -57,10 +50,11 @@ func (h Handler) Update(c echo.Context) error {
 		return response.Error(http.StatusBadRequest, response.ErrorHandlerFailedValidation, err, response.ValidationError(err)).SendJSON(c)
 	}
 
-	err = h.usecase.Update(loginUser, id, *req)
+	err = h.usecase.Create(loginUser, *req)
 	if err != nil {
 		return response.Error(http.StatusBadRequest, err.Error(), err, nil).SendJSON(c)
 	}
 
-	return response.Success(http.StatusOK, "Successfully updated company", nil).SendJSON(c)
+	return response.Success(http.StatusOK, "Successfully created event", nil).SendJSON(c)
+
 }
