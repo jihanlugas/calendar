@@ -1,17 +1,15 @@
 package property
 
 import (
-	"errors"
 	"fmt"
 
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/app/propertyprice"
 	"github.com/jihanlugas/calendar/app/propertytimeline"
 	"github.com/jihanlugas/calendar/app/unit"
-	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 )
 
@@ -26,6 +24,7 @@ type Usecase interface {
 }
 
 type usecase struct {
+	baseUsecase                base.Usecase
 	repository                 Repository
 	repositoryPropertytimeline propertytimeline.Repository
 	repositoryUnit             unit.Repository
@@ -33,11 +32,11 @@ type usecase struct {
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageProperty) (vProperties []model.PropertyView, count int64, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return vProperties, count, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return vProperties, count, err
 	}
 
 	vProperties, count, err = u.repository.Page(conn, req)
@@ -45,11 +44,11 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageProperty) (vPrope
 		return vProperties, count, err
 	}
 
-	return vProperties, count, err
+	return vProperties, count, nil
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vProperty model.PropertyView, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	vProperty, err = u.repository.GetViewById(conn, id, preloads...)
@@ -57,30 +56,22 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vProperty, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, vProperty.CompanyID) {
-		return vProperty, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vProperty.CompanyID); err != nil {
+		return vProperty, err
 	}
 
-	return vProperty, err
+	return vProperty, nil
 }
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) error {
-	var err error
-	var tProperty model.Property
-	var tPropertytimeline model.Propertytimeline
-	var tUnits []model.Unit
-	var tPropertyprices []model.Propertyprice
-
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
-
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return err
 	}
 
-	tx := conn.Begin()
+	conn, closeConn := u.baseUsecase.WithConn()
+	defer closeConn()
 
-	tProperty = model.Property{
+	tProperty := model.Property{
 		ID:          utils.GetUniqueID(),
 		CompanyID:   req.CompanyID,
 		Name:        req.Name,
@@ -89,22 +80,27 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 		UpdateBy:    loginUser.UserID,
 	}
 
-	err = u.repository.Create(tx, tProperty)
-	if err != nil {
+	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := u.repository.Create(tx, tProperty); err != nil {
+		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
 
-	tPropertytimeline = model.Propertytimeline{
+	tPropertytimeline := model.Propertytimeline{
 		ID:       tProperty.ID,
 		CreateBy: loginUser.UserID,
 		UpdateBy: loginUser.UserID,
 	}
 
-	err = u.repositoryPropertytimeline.Create(tx, tPropertytimeline)
-	if err != nil {
+	if err := u.repositoryPropertytimeline.Create(tx, tPropertytimeline); err != nil {
 		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err)
 	}
 
+	var tUnits []model.Unit
 	for _, unit := range req.Units {
 		tUnit := model.Unit{
 			CompanyID:   req.CompanyID,
@@ -115,15 +111,14 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 			CreateBy:    loginUser.UserID,
 			UpdateBy:    loginUser.UserID,
 		}
-
 		tUnits = append(tUnits, tUnit)
 	}
 
-	err = u.repositoryUnit.Creates(tx, tUnits)
-	if err != nil {
-		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err)
+	if err := u.repositoryUnit.Creates(tx, tUnits); err != nil {
+		return fmt.Errorf("failed to create %s: %v", u.repositoryUnit.Name(), err)
 	}
 
+	var tPropertyprices []model.Propertyprice
 	for index, propertyprice := range req.Propertyprices {
 		tPropertyprice := model.Propertyprice{
 			CompanyID:  req.CompanyID,
@@ -136,71 +131,57 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 			CreateBy:   loginUser.UserID,
 			UpdateBy:   loginUser.UserID,
 		}
-
 		tPropertyprices = append(tPropertyprices, tPropertyprice)
 	}
 
-	err = u.repositoryPropertyprice.Creates(tx, tPropertyprices)
-	if err != nil {
-		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertyprice.Name(), err)
+	if err := u.repositoryPropertyprice.Creates(tx, tPropertyprices); err != nil {
+		_ = tx.Rollback().Error
+		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err)
 	}
 
-	err = tx.Commit().Error
-	if err != nil {
-		return err
-	}
-
-	return err
+	return tx.Commit().Error
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateProperty) error {
-	var err error
-	var tProperty model.Property
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tProperty, err = u.repository.GetTableById(conn, id)
+	tProperty, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tProperty.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID); err != nil {
+		return err
 	}
 
 	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
 
 	tProperty.Name = req.Name
 	tProperty.Description = req.Description
 	tProperty.UpdateBy = loginUser.UserID
-	err = u.repository.Save(tx, tProperty)
-	if err != nil {
+	if err := u.repository.Save(tx, tProperty); err != nil {
+		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
-	err = tx.Commit().Error
-	if err != nil {
-		return err
-	}
-
-	return err
+	return tx.Commit().Error
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	var err error
-	var tProperty model.Property
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tProperty, err = u.repository.GetTableById(conn, id)
+	tProperty, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tProperty.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID); err != nil {
+		return err
 	}
 
 	tx := conn.Begin()
@@ -219,7 +200,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 }
 
 func (u usecase) GetPrice(req request.GetPrice) (price int64, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	price, err = u.repositoryPropertyprice.GetPrice(conn, req)
@@ -231,19 +212,16 @@ func (u usecase) GetPrice(req request.GetPrice) (price int64, err error) {
 }
 
 func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req request.SortPropertyPrice) error {
-	var err error
-	var tProperty model.Property
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tProperty, err = u.repository.GetTableById(conn, id)
+	tProperty, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tProperty.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID); err != nil {
+		return err
 	}
 
 	tx := conn.Begin()
@@ -254,8 +232,8 @@ func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req reque
 			return fmt.Errorf("failed to get %s: %v", u.repositoryPropertyprice.Name(), err)
 		}
 
-		if jwt.IsSaveCompanyIDOR(loginUser, tPropertyprice.CompanyID) {
-			return errors.New(response.ErrorHandlerIDOR)
+		if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tPropertyprice.CompanyID); err != nil {
+			return err
 		}
 
 		tPropertyprice.Priority = propertyprice.Priority
@@ -273,8 +251,9 @@ func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req reque
 	return nil
 }
 
-func NewUsecase(repository Repository, repositoryPropertytimeline propertytimeline.Repository, repositoryUnit unit.Repository, repositoryPropertyprice propertyprice.Repository) Usecase {
+func NewUsecase(baseUsecase base.Usecase, repository Repository, repositoryPropertytimeline propertytimeline.Repository, repositoryUnit unit.Repository, repositoryPropertyprice propertyprice.Repository) Usecase {
 	return &usecase{
+		baseUsecase:                baseUsecase,
 		repository:                 repository,
 		repositoryPropertytimeline: repositoryPropertytimeline,
 		repositoryUnit:             repositoryUnit,

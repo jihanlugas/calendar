@@ -3,7 +3,8 @@ package photo
 import (
 	"errors"
 	"fmt"
-	"github.com/jihanlugas/calendar/db"
+
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/model"
 )
 
@@ -13,11 +14,12 @@ type Usecase interface {
 }
 
 type usecase struct {
-	repository Repository
+	baseUsecase base.Usecase
+	repository  Repository
 }
 
 func (u usecase) GetById(id string) (tPhoto model.Photo, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	tPhoto, err = u.repository.GetById(conn, id)
@@ -25,16 +27,16 @@ func (u usecase) GetById(id string) (tPhoto model.Photo, err error) {
 		return tPhoto, errors.New(fmt.Sprint("failed to get order: ", err))
 	}
 
-	return tPhoto, err
+	return tPhoto, nil
 }
 
 func (u usecase) Upload() (tPhoto model.Photo, err error) {
-
-	return tPhoto, err
+	return tPhoto, nil
 }
 
-func NewUsecase(repository Repository) Usecase {
+func NewUsecase(baseUsecase base.Usecase, repository Repository) Usecase {
 	return &usecase{
-		repository: repository,
+		baseUsecase: baseUsecase,
+		repository:  repository,
 	}
 }

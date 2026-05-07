@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/app/usercompany"
 	"github.com/jihanlugas/calendar/constant"
 	"github.com/jihanlugas/calendar/cryption"
-	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 	"gorm.io/gorm"
 )
@@ -27,16 +26,17 @@ type Usecase interface {
 }
 
 type usecase struct {
+	baseUsecase       base.Usecase
 	repository        Repository
 	repositoryCompany usercompany.Repository
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageUser) (vUsers []model.UserView, count int64, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return vUsers, count, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return vUsers, count, err
 	}
 
 	vUsers, count, err = u.repository.Page(conn, req)
@@ -44,11 +44,11 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageUser) (vUsers []m
 		return vUsers, count, err
 	}
 
-	return vUsers, count, err
+	return vUsers, count, nil
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vUser model.UserView, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	vUser, err = u.repository.GetViewById(conn, id, preloads...)
@@ -61,21 +61,16 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vUser, fmt.Errorf("failed to get %s: %v", u.repositoryCompany.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, vUsercompany.CompanyID) {
-		return vUser, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID); err != nil {
+		return vUser, err
 	}
 
-	return vUser, err
+	return vUser, nil
 }
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
-	var err error
-	var tUser model.User
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
-
-	tx := conn.Begin()
 
 	now := time.Now()
 
@@ -84,7 +79,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
 		return fmt.Errorf("failed to encode password: %v", err)
 	}
 
-	tUser = model.User{
+	tUser := model.User{
 		ID:                utils.GetUniqueID(),
 		Role:              constant.RoleUser,
 		Email:             req.Email,
@@ -104,8 +99,13 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
 		UpdateBy:          loginUser.UserID,
 	}
 
-	err = u.repository.Create(tx, tUser)
-	if err != nil {
+	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := u.repository.Create(tx, tUser); err != nil {
+		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
 
@@ -118,27 +118,19 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
 		CreateBy:         loginUser.UserID,
 		UpdateBy:         loginUser.UserID,
 	}
-	err = u.repositoryCompany.Create(tx, tUsercompany)
-	if err != nil {
+	if err := u.repositoryCompany.Create(tx, tUsercompany); err != nil {
+		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repositoryCompany.Name(), err)
 	}
 
-	err = tx.Commit().Error
-	if err != nil {
-		return err
-	}
-
-	return err
+	return tx.Commit().Error
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUser) error {
-	var err error
-	var tUser model.User
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tUser, err = u.repository.GetTableById(conn, id)
+	tUser, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
@@ -148,11 +140,14 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUs
 		return fmt.Errorf("failed to update %s: %v", u.repositoryCompany.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, vUsercompany.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID); err != nil {
+		return err
 	}
 
 	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
 
 	if tUser.Email != req.Email {
 		_, err = u.repository.GetByEmail(tx, req.Email)
@@ -184,67 +179,55 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUs
 	tUser.BirthDt = req.BirthDt
 	tUser.BirthPlace = req.BirthPlace
 	tUser.UpdateBy = loginUser.UserID
-	err = u.repository.Save(tx, tUser)
-	if err != nil {
+	if err := u.repository.Save(tx, tUser); err != nil {
+		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
-	err = tx.Commit().Error
-	if err != nil {
-		return err
-	}
-
-	return err
+	return tx.Commit().Error
 }
 
 func (u usecase) ChangePassword(loginUser jwt.UserLogin, req request.ChangePassword) error {
-	var err error
-	var tUser model.User
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tUser, err = u.repository.GetTableById(conn, loginUser.UserID)
+	tUser, err := u.repository.GetTableById(conn, loginUser.UserID)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
 	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
 
-	err = cryption.CheckAES64(req.CurrentPasswd, tUser.Passwd)
-	if err != nil {
+	if err := cryption.CheckAES64(req.CurrentPasswd, tUser.Passwd); err != nil {
+		_ = tx.Rollback().Error
 		return fmt.Errorf("invalid current password")
 	}
 
 	encodePasswd, err := cryption.EncryptAES64(req.Passwd)
 	if err != nil {
+		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to encode password: %v", err)
 	}
 
 	tUser.Passwd = encodePasswd
 	tUser.PassVersion += 1
 	tUser.UpdateBy = loginUser.UserID
-	err = u.repository.Save(tx, tUser)
-	if err != nil {
+	if err := u.repository.Save(tx, tUser); err != nil {
+		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to update password: %v", err)
 	}
 
-	err = tx.Commit().Error
-	if err != nil {
-		return err
-	}
-
-	return err
+	return tx.Commit().Error
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	var err error
-	var tUser model.User
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tUser, err = u.repository.GetTableById(conn, id)
+	tUser, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
@@ -254,27 +237,26 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return fmt.Errorf("failed to get %s: %v", u.repositoryCompany.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, vUsercompany.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
-	}
-
-	tx := conn.Begin()
-
-	err = u.repository.Delete(tx, tUser)
-	if err != nil {
-		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
-	}
-
-	err = tx.Commit().Error
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID); err != nil {
 		return err
 	}
 
-	return err
+	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := u.repository.Delete(tx, tUser); err != nil {
+		_ = tx.Rollback().Error
+		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
+	}
+
+	return tx.Commit().Error
 }
 
-func NewUsecase(repository Repository, repositoryCompany usercompany.Repository) Usecase {
+func NewUsecase(baseUsecase base.Usecase, repository Repository, repositoryCompany usercompany.Repository) Usecase {
 	return &usecase{
+		baseUsecase:       baseUsecase,
 		repository:        repository,
 		repositoryCompany: repositoryCompany,
 	}

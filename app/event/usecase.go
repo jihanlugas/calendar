@@ -4,14 +4,13 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/app/order"
 	"github.com/jihanlugas/calendar/app/orderevent"
 	"github.com/jihanlugas/calendar/constant"
-	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 )
 
@@ -26,17 +25,18 @@ type Usecase interface {
 }
 
 type usecase struct {
+	baseUsecase          base.Usecase
 	repository           Repository
 	repositoryOrder      order.Repository
 	repositoryOrderevent orderevent.Repository
 }
 
 func (u usecase) Timeline(loginUser jwt.UserLogin, req request.TimelineEvent) (vEvents []model.EventView, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return vEvents, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return vEvents, err
 	}
 
 	vEvents, err = u.repository.Timeline(conn, req)
@@ -48,11 +48,11 @@ func (u usecase) Timeline(loginUser jwt.UserLogin, req request.TimelineEvent) (v
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageEvent) (vEvents []model.EventView, count int64, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return vEvents, count, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return vEvents, count, err
 	}
 
 	vEvents, count, err = u.repository.Page(conn, req)
@@ -64,7 +64,7 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageEvent) (vEvents [
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vEvent model.EventView, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	vEvent, err = u.repository.GetViewById(conn, id, preloads...)
@@ -72,8 +72,8 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vEvent, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, vEvent.CompanyID) {
-		return vEvent, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vEvent.CompanyID); err != nil {
+		return vEvent, err
 	}
 
 	return vEvent, err
@@ -81,13 +81,11 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error {
 	var err error
-	var tEvent model.Event
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return err
 	}
 
 	tx := conn.Begin()
@@ -96,7 +94,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 	orderID := utils.GetUniqueID()
 	ordereventID := utils.GetUniqueID()
 
-	tEvent = model.Event{
+	tEvent := model.Event{
 		ID:           eventID,
 		CompanyID:    req.CompanyID,
 		PropertyID:   req.PropertyID,
@@ -153,19 +151,16 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEvent) error {
-	var err error
-	var tEvent model.Event
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tEvent, err = u.repository.GetTableById(conn, id)
+	tEvent, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tEvent.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tEvent.CompanyID); err != nil {
+		return err
 	}
 
 	if tEvent.Status == constant.EVENT_STATUS_CONFIRM && req.Status == constant.EVENT_STATUS_HOLD {
@@ -195,19 +190,16 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEv
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	var err error
-	var tEvent model.Event
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tEvent, err = u.repository.GetTableById(conn, id)
+	tEvent, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tEvent.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tEvent.CompanyID); err != nil {
+		return err
 	}
 
 	tx := conn.Begin()
@@ -226,19 +218,16 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 }
 
 func (u usecase) Confirm(loginUser jwt.UserLogin, id string) error {
-	var err error
-	var tEvent model.Event
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tEvent, err = u.repository.GetTableById(conn, id)
+	tEvent, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tEvent.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tEvent.CompanyID); err != nil {
+		return err
 	}
 
 	if tEvent.Status != constant.EVENT_STATUS_HOLD {
@@ -262,8 +251,9 @@ func (u usecase) Confirm(loginUser jwt.UserLogin, id string) error {
 	return err
 }
 
-func NewUsecase(repository Repository, repositoryOrder order.Repository, repositoryOrderevent orderevent.Repository) Usecase {
+func NewUsecase(baseUsecase base.Usecase, repository Repository, repositoryOrder order.Repository, repositoryOrderevent orderevent.Repository) Usecase {
 	return &usecase{
+		baseUsecase:          baseUsecase,
 		repository:           repository,
 		repositoryOrder:      repositoryOrder,
 		repositoryOrderevent: repositoryOrderevent,

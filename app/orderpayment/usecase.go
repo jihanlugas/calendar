@@ -1,15 +1,13 @@
 package orderpayment
 
 import (
-	"errors"
 	"fmt"
 
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/app/companypaymentmethod"
-	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/response"
 )
 
 type Usecase interface {
@@ -17,30 +15,27 @@ type Usecase interface {
 }
 
 type usecase struct {
+	baseUsecase                    base.Usecase
 	repository                     Repository
 	companypaymentmethodRepository companypaymentmethod.Repository
 }
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateOrderpayment) error {
-	var err error
-	var tOrderpayment model.Orderpayment
-	var tCompanypaymentmethod model.Companypaymentmethod
-
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
-	}
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tCompanypaymentmethod, err = u.companypaymentmethodRepository.GetTableById(conn, req.CompanypaymentmethodID)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return err
+	}
+
+	tCompanypaymentmethod, err := u.companypaymentmethodRepository.GetTableById(conn, req.CompanypaymentmethodID)
 	if err != nil {
 		return err
 	}
 
 	tx := conn.Begin()
 
-	tOrderpayment = model.Orderpayment{
+	tOrderpayment := model.Orderpayment{
 		CompanyID:              req.CompanyID,
 		OrderID:                req.OrderID,
 		CompanypaymentmethodID: req.CompanypaymentmethodID,
@@ -63,8 +58,9 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateOrderpayment)
 	return err
 }
 
-func NewUsecase(repository Repository, companypaymentmethodRepository companypaymentmethod.Repository) Usecase {
+func NewUsecase(baseUsecase base.Usecase, repository Repository, companypaymentmethodRepository companypaymentmethod.Repository) Usecase {
 	return &usecase{
+		baseUsecase:                    baseUsecase,
 		repository:                     repository,
 		companypaymentmethodRepository: companypaymentmethodRepository,
 	}

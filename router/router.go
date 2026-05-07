@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jihanlugas/calendar/app/auth"
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/app/company"
 	"github.com/jihanlugas/calendar/app/companypaymentmethod"
 	"github.com/jihanlugas/calendar/app/event"
@@ -60,17 +61,18 @@ func Init() *echo.Echo {
 	orderpaymentRepository := orderpayment.NewRepository()
 
 	// usecases
-	authUsecase := auth.NewUsecase(userRepository, companyRepository, usercompanyRepository)
-	photoUsecase := photo.NewUsecase(photoRepository)
-	userUsecase := user.NewUsecase(userRepository, usercompanyRepository)
-	companyUsecase := company.NewUsecase(companyRepository, usercompanyRepository)
-	companypaymentmethodUsecase := companypaymentmethod.NewUsecase(companypaymentmethodRepository)
-	productUsecase := product.NewUsecase(productRepository)
-	propertyUsecase := property.NewUsecase(propertyRepository, propertytimelineRepository, unitRepository, propertypriceRepository)
-	unitUsecase := unit.NewUsecase(unitRepository)
-	eventUsecase := event.NewUsecase(eventRepository, orderRepository, ordereventRepository)
-	propertypriceUsecase := propertyprice.NewUsecase(propertypriceRepository)
-	orderpaymentUsecase := orderpayment.NewUsecase(orderpaymentRepository, companypaymentmethodRepository)
+	baseUsecase := base.NewUsecase()
+	authUsecase := auth.NewUsecase(baseUsecase, userRepository, companyRepository, usercompanyRepository)
+	photoUsecase := photo.NewUsecase(baseUsecase, photoRepository)
+	userUsecase := user.NewUsecase(baseUsecase, userRepository, usercompanyRepository)
+	companyUsecase := company.NewUsecase(baseUsecase, companyRepository, usercompanyRepository)
+	companypaymentmethodUsecase := companypaymentmethod.NewUsecase(baseUsecase, companypaymentmethodRepository)
+	productUsecase := product.NewUsecase(baseUsecase, productRepository)
+	propertyUsecase := property.NewUsecase(baseUsecase, propertyRepository, propertytimelineRepository, unitRepository, propertypriceRepository)
+	unitUsecase := unit.NewUsecase(baseUsecase, unitRepository)
+	eventUsecase := event.NewUsecase(baseUsecase, eventRepository, orderRepository, ordereventRepository)
+	propertypriceUsecase := propertyprice.NewUsecase(baseUsecase, propertypriceRepository)
+	orderpaymentUsecase := orderpayment.NewUsecase(baseUsecase, orderpaymentRepository, companypaymentmethodRepository)
 
 	// handlers
 	authHandler := auth.NewHandler(authUsecase)

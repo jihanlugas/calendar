@@ -1,35 +1,41 @@
 package product
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/jihanlugas/calendar/db"
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 )
 
 type Usecase interface {
 	Page(loginUser jwt.UserLogin, req request.PageProduct) (vProducts []model.ProductView, count int64, err error)
 	GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vProduct model.ProductView, err error)
-	Create(loginUser jwt.UserLogin, req request.CreateProduct) error
-	Update(loginUser jwt.UserLogin, id string, req request.UpdateProduct) error
-	Delete(loginUser jwt.UserLogin, id string) error
+	Create(loginUser jwt.UserLogin, req request.CreateProduct) (err error)
+	Update(loginUser jwt.UserLogin, id string, req request.UpdateProduct) (err error)
+	Delete(loginUser jwt.UserLogin, id string) (err error)
 }
 
 type usecase struct {
-	repository Repository
+	baseUsecase base.Usecase
+	repository  Repository
+}
+
+func NewUsecase(baseUsecase base.Usecase, repository Repository) Usecase {
+	return &usecase{
+		baseUsecase: baseUsecase,
+		repository:  repository,
+	}
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageProduct) (vProducts []model.ProductView, count int64, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return vProducts, count, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return vProducts, count, err
 	}
 
 	vProducts, count, err = u.repository.Page(conn, req)
@@ -37,11 +43,11 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageProduct) (vProduc
 		return vProducts, count, err
 	}
 
-	return vProducts, count, err
+	return vProducts, count, nil
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vProduct model.ProductView, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	vProduct, err = u.repository.GetViewById(conn, id, preloads...)
@@ -49,27 +55,24 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vProduct, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, vProduct.CompanyID) {
-		return vProduct, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vProduct.CompanyID); err != nil {
+		return vProduct, err
 	}
 
-	return vProduct, err
+	return vProduct, nil
 }
 
-func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProduct) error {
-	var err error
-	var tProduct model.Product
-
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
-
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProduct) (err error) {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return err
 	}
+
+	conn, closeConn := u.baseUsecase.WithConn()
+	defer closeConn()
 
 	tx := conn.Begin()
 
-	tProduct = model.Product{
+	tProduct := model.Product{
 		ID:          utils.GetUniqueID(),
 		CompanyID:   req.CompanyID,
 		Name:        req.Name,
@@ -92,20 +95,17 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProduct) erro
 	return err
 }
 
-func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateProduct) error {
-	var err error
-	var tProduct model.Product
-
-	conn, closeConn := db.GetConnection()
+func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateProduct) (err error) {
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tProduct, err = u.repository.GetTableById(conn, id)
+	tProduct, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tProduct.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProduct.CompanyID); err != nil {
+		return err
 	}
 
 	tx := conn.Begin()
@@ -127,20 +127,17 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 	return err
 }
 
-func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	var err error
-	var tProduct model.Product
-
-	conn, closeConn := db.GetConnection()
+func (u usecase) Delete(loginUser jwt.UserLogin, id string) (err error) {
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tProduct, err = u.repository.GetTableById(conn, id)
+	tProduct, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tProduct.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProduct.CompanyID); err != nil {
+		return err
 	}
 
 	tx := conn.Begin()
@@ -156,10 +153,4 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 	}
 
 	return err
-}
-
-func NewUsecase(repository Repository) Usecase {
-	return &usecase{
-		repository: repository,
-	}
 }

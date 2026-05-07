@@ -1,40 +1,41 @@
 package companypaymentmethod
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/jihanlugas/calendar/db"
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/response"
 )
 
 type Usecase interface {
 	Page(loginUser jwt.UserLogin, req request.PageCompanypaymentmethod) (vCompanypaymentmethods []model.CompanypaymentmethodView, count int64, err error)
 	GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vCompanypaymentmethod model.CompanypaymentmethodView, err error)
-	Create(loginUser jwt.UserLogin, req request.CreateCompanypaymentmethod) error
-	Update(loginUser jwt.UserLogin, id string, req request.UpdateCompanypaymentmethod) error
-	Delete(loginUser jwt.UserLogin, id string) error
+	Create(loginUser jwt.UserLogin, req request.CreateCompanypaymentmethod) (err error)
+	Update(loginUser jwt.UserLogin, id string, req request.UpdateCompanypaymentmethod) (err error)
+	Delete(loginUser jwt.UserLogin, id string) (err error)
 }
 
 type usecase struct {
-	repository Repository
+	baseUsecase base.Usecase
+	repository  Repository
 }
 
-func NewUsecase(repository Repository) Usecase {
+func NewUsecase(baseUsecase base.Usecase, repository Repository) Usecase {
 	return &usecase{
-		repository: repository,
+		baseUsecase: baseUsecase,
+		repository:  repository,
 	}
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageCompanypaymentmethod) (vCompanypaymentmethods []model.CompanypaymentmethodView, count int64, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return vCompanypaymentmethods, count, errors.New(response.ErrorHandlerIDOR)
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
+		return vCompanypaymentmethods, count, err
 	}
 
 	vCompanypaymentmethods, count, err = u.repository.Page(conn, req)
@@ -42,11 +43,11 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageCompanypaymentmet
 		return vCompanypaymentmethods, count, err
 	}
 
-	return vCompanypaymentmethods, count, err
+	return vCompanypaymentmethods, count, nil
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vCompanypaymentmethod model.CompanypaymentmethodView, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	vCompanypaymentmethod, err = u.repository.GetViewById(conn, id, preloads...)
@@ -54,32 +55,32 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vCompanypaymentmethod, err
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, vCompanypaymentmethod.CompanyID) {
-		return vCompanypaymentmethod, errors.New(response.ErrorHandlerIDOR)
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vCompanypaymentmethod.CompanyID)
+	if err != nil {
+		return vCompanypaymentmethod, err
 	}
 
-	return vCompanypaymentmethod, err
+	return vCompanypaymentmethod, nil
 }
 
-func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateCompanypaymentmethod) error {
-	var err error
-	var tCompanypaymentmethod model.Companypaymentmethod
+func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateCompanypaymentmethod) (err error) {
 
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
-
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
+		return err
 	}
 
-	tx := conn.Begin()
+	conn, closeConn := u.baseUsecase.WithConn()
+	defer closeConn()
 
-	tCompanypaymentmethod = model.Companypaymentmethod{
+	tCompanypaymentmethod := model.Companypaymentmethod{
 		CompanyID:       req.CompanyID,
 		PaymentmethodID: req.PaymentmethodID,
 		CreateBy:        loginUser.UserID,
 		UpdateBy:        loginUser.UserID,
 	}
+
+	tx := conn.Begin()
 
 	err = u.repository.Create(tx, tCompanypaymentmethod)
 	if err != nil {
@@ -94,20 +95,18 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateCompanypaymen
 	return err
 }
 
-func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCompanypaymentmethod) error {
-	var err error
-	var tCompanypaymentmethod model.Companypaymentmethod
-
-	conn, closeConn := db.GetConnection()
+func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCompanypaymentmethod) (err error) {
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tCompanypaymentmethod, err = u.repository.GetTableById(conn, id)
+	tCompanypaymentmethod, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tCompanypaymentmethod.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tCompanypaymentmethod.CompanyID)
+	if err != nil {
+		return err
 	}
 
 	tx := conn.Begin()
@@ -127,20 +126,18 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCo
 	return err
 }
 
-func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	var err error
-	var tCompanypaymentmethod model.Companypaymentmethod
-
-	conn, closeConn := db.GetConnection()
+func (u usecase) Delete(loginUser jwt.UserLogin, id string) (err error) {
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tCompanypaymentmethod, err = u.repository.GetTableById(conn, id)
+	tCompanypaymentmethod, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tCompanypaymentmethod.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tCompanypaymentmethod.CompanyID)
+	if err != nil {
+		return err
 	}
 
 	tx := conn.Begin()

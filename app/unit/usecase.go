@@ -1,14 +1,12 @@
 package unit
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/jihanlugas/calendar/db"
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 )
 
@@ -21,15 +19,23 @@ type Usecase interface {
 }
 
 type usecase struct {
-	repository Repository
+	baseUsecase base.Usecase
+	repository  Repository
+}
+
+func NewUsecase(baseUsecase base.Usecase, repository Repository) Usecase {
+	return &usecase{
+		baseUsecase: baseUsecase,
+		repository:  repository,
+	}
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageUnit) (vUnits []model.UnitView, count int64, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return vUnits, count, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return vUnits, count, err
 	}
 
 	vUnits, count, err = u.repository.Page(conn, req)
@@ -37,11 +43,11 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageUnit) (vUnits []m
 		return vUnits, count, err
 	}
 
-	return vUnits, count, err
+	return vUnits, count, nil
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vUnit model.UnitView, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	vUnit, err = u.repository.GetViewById(conn, id, preloads...)
@@ -49,27 +55,22 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vUnit, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, vUnit.CompanyID) {
-		return vUnit, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUnit.CompanyID); err != nil {
+		return vUnit, err
 	}
 
-	return vUnit, err
+	return vUnit, nil
 }
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUnit) error {
-	var err error
-	var tUnit model.Unit
-
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
-
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return err
 	}
 
-	tx := conn.Begin()
+	conn, closeConn := u.baseUsecase.WithConn()
+	defer closeConn()
 
-	tUnit = model.Unit{
+	tUnit := model.Unit{
 		ID:          utils.GetUniqueID(),
 		CompanyID:   req.CompanyID,
 		PropertyID:  req.PropertyID,
@@ -79,86 +80,70 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUnit) error {
 		UpdateBy:    loginUser.UserID,
 	}
 
-	err = u.repository.Create(tx, tUnit)
-	if err != nil {
+	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := u.repository.Create(tx, tUnit); err != nil {
+		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
 
-	err = tx.Commit().Error
-	if err != nil {
-		return err
-	}
-
-	return err
+	return tx.Commit().Error
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUnit) error {
-	var err error
-	var tUnit model.Unit
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tUnit, err = u.repository.GetTableById(conn, id)
+	tUnit, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tUnit.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tUnit.CompanyID); err != nil {
+		return err
 	}
 
 	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
 
 	tUnit.Name = req.Name
 	tUnit.Description = req.Description
 	tUnit.UpdateBy = loginUser.UserID
-	err = u.repository.Save(tx, tUnit)
-	if err != nil {
+	if err := u.repository.Save(tx, tUnit); err != nil {
+		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
-	err = tx.Commit().Error
-	if err != nil {
-		return err
-	}
-
-	return err
+	return tx.Commit().Error
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	var err error
-	var tUnit model.Unit
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tUnit, err = u.repository.GetTableById(conn, id)
+	tUnit, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tUnit.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
-	}
-
-	tx := conn.Begin()
-
-	err = u.repository.Delete(tx, tUnit)
-	if err != nil {
-		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
-	}
-
-	err = tx.Commit().Error
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tUnit.CompanyID); err != nil {
 		return err
 	}
 
-	return err
-}
-
-func NewUsecase(repository Repository) Usecase {
-	return &usecase{
-		repository: repository,
+	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
 	}
+
+	if err := u.repository.Delete(tx, tUnit); err != nil {
+		_ = tx.Rollback().Error
+		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
+	}
+
+	return tx.Commit().Error
 }

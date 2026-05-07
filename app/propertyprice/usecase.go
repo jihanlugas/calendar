@@ -1,13 +1,10 @@
 package propertyprice
 
 import (
-	"errors"
-
-	"github.com/jihanlugas/calendar/db"
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/response"
 )
 
 type Usecase interface {
@@ -18,11 +15,19 @@ type Usecase interface {
 }
 
 type usecase struct {
-	repository Repository
+	baseUsecase base.Usecase
+	repository  Repository
+}
+
+func NewUsecase(baseUsecase base.Usecase, repository Repository) Usecase {
+	return &usecase{
+		baseUsecase: baseUsecase,
+		repository:  repository,
+	}
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vPropertyprice model.PropertypriceView, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	vPropertyprice, err = u.repository.GetViewById(conn, id, preloads...)
@@ -30,32 +35,27 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vPropertyprice, err
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, vPropertyprice.CompanyID) {
-		return vPropertyprice, errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vPropertyprice.CompanyID); err != nil {
+		return vPropertyprice, err
 	}
 
-	return vPropertyprice, err
+	return vPropertyprice, nil
 }
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertyprice) error {
-	var err error
-	var tPropertyprice model.Propertyprice
-
-	if jwt.IsSaveCompanyIDOR(loginUser, req.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+		return err
 	}
 
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tx := conn.Begin()
-
-	countPropertyprices, err := u.repository.CountByPropertyID(tx, req.PropertyID)
+	countPropertyprices, err := u.repository.CountByPropertyID(conn, req.PropertyID)
 	if err != nil {
 		return err
 	}
 
-	tPropertyprice = model.Propertyprice{
+	tPropertyprice := model.Propertyprice{
 		CompanyID:  req.CompanyID,
 		PropertyID: req.PropertyID,
 		Price:      req.Price,
@@ -67,87 +67,71 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertyprice
 		UpdateBy:   loginUser.UserID,
 	}
 
-	err = u.repository.Create(tx, tPropertyprice)
-	if err != nil {
+	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if err := u.repository.Create(tx, tPropertyprice); err != nil {
+		_ = tx.Rollback().Error
 		return err
 	}
 
-	err = tx.Commit().Error
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit().Error
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePropertyprice) error {
-	var err error
-	var tPropertyprice model.Propertyprice
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tx := conn.Begin()
-
-	tPropertyprice, err = u.repository.GetTableById(tx, id)
+	tPropertyprice, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return err
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tPropertyprice.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tPropertyprice.CompanyID); err != nil {
+		return err
+	}
+
+	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
 	}
 
 	tPropertyprice.Price = req.Price
 	tPropertyprice.Weekdays = req.Weekdays
 	tPropertyprice.StartTime = req.StartTime
 	tPropertyprice.EndTime = req.EndTime
-	err = u.repository.Save(tx, tPropertyprice)
-	if err != nil {
+	if err := u.repository.Save(tx, tPropertyprice); err != nil {
+		_ = tx.Rollback().Error
 		return err
 	}
 
-	err = tx.Commit().Error
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return tx.Commit().Error
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	var err error
-	var tPropertyprice model.Propertyprice
-
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
+	tPropertyprice, err := u.repository.GetTableById(conn, id)
+	if err != nil {
+		return err
+	}
+
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tPropertyprice.CompanyID); err != nil {
+		return err
+	}
+
 	tx := conn.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
 
-	tPropertyprice, err = u.repository.GetTableById(tx, id)
-	if err != nil {
+	if err := u.repository.Delete(tx, tPropertyprice); err != nil {
+		_ = tx.Rollback().Error
 		return err
 	}
 
-	if jwt.IsSaveCompanyIDOR(loginUser, tPropertyprice.CompanyID) {
-		return errors.New(response.ErrorHandlerIDOR)
-	}
-
-	err = u.repository.Delete(tx, tPropertyprice)
-	if err != nil {
-		return err
-	}
-
-	err = tx.Commit().Error
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func NewUsecase(repository Repository) Usecase {
-	return &usecase{
-		repository: repository,
-	}
+	return tx.Commit().Error
 }

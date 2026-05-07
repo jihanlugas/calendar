@@ -19,6 +19,12 @@ type repository struct {
 	base.Repository[model.Unit, model.UnitView]
 }
 
+func NewRepository() Repository {
+	return &repository{
+		Repository: base.NewRepository[model.Unit, model.UnitView]("unit"),
+	}
+}
+
 func (r repository) Page(conn *gorm.DB, req request.PageUnit) (vUnits []model.UnitView, count int64, err error) {
 	query := conn.Model(&vUnits)
 
@@ -74,10 +80,4 @@ func (r repository) Page(conn *gorm.DB, req request.PageUnit) (vUnits []model.Un
 	}
 
 	return vUnits, count, err
-}
-
-func NewRepository() Repository {
-	return &repository{
-		Repository: base.NewRepository[model.Unit, model.UnitView]("unit"),
-	}
 }

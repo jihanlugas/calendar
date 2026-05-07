@@ -4,40 +4,37 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/app/usercompany"
 	"github.com/jihanlugas/calendar/constant"
-	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
-	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
-	"github.com/jihanlugas/calendar/response"
 	"github.com/jihanlugas/calendar/utils"
 )
 
 type Usecase interface {
-	Update(loginUser jwt.UserLogin, id string, req request.UpdateCompany) error
+	Update(loginUser jwt.UserLogin, id string, req request.UpdateCompany) (err error)
 }
 
 type usecase struct {
+	baseUsecase           base.Usecase
 	repository            Repository
 	repositoryUsercompany usercompany.Repository
 }
 
-func NewUsecase(repository Repository, repositoryUsercompany usercompany.Repository) Usecase {
+func NewUsecase(baseUsecase base.Usecase, repository Repository, repositoryUsercompany usercompany.Repository) Usecase {
 	return &usecase{
+		baseUsecase:           baseUsecase,
 		repository:            repository,
 		repositoryUsercompany: repositoryUsercompany,
 	}
 }
 
-func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCompany) error {
-	var err error
-	var tCompany model.Company
-
-	conn, closeConn := db.GetConnection()
+func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCompany) (err error) {
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
-	tCompany, err = u.repository.GetTableById(conn, id)
+	tCompany, err := u.repository.GetTableById(conn, id)
 	if err != nil {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
@@ -52,8 +49,8 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCo
 			return fmt.Errorf("failed to get %s: %v", u.repositoryUsercompany.Name(), err)
 		}
 
-		if jwt.IsSaveCompanyIDOR(loginUser, vUsercompany.CompanyID) {
-			return errors.New(response.ErrorHandlerIDOR)
+		if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID); err != nil {
+			return err
 		}
 	default:
 		return errors.New("not allowed")

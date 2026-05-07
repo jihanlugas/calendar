@@ -4,13 +4,13 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/app/company"
 	"github.com/jihanlugas/calendar/app/user"
 	"github.com/jihanlugas/calendar/app/usercompany"
 	"github.com/jihanlugas/calendar/config"
 	"github.com/jihanlugas/calendar/constant"
 	"github.com/jihanlugas/calendar/cryption"
-	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
 	"github.com/jihanlugas/calendar/request"
@@ -24,6 +24,7 @@ type Usecase interface {
 }
 
 type usecase struct {
+	baseUsecase           base.Usecase
 	userRepository        user.Repository
 	companyRepository     company.Repository
 	usercompanyRepository usercompany.Repository
@@ -35,7 +36,7 @@ func (u usecase) SignIn(req request.Signin) (token string, userLogin jwt.UserLog
 	var tCompany model.Company
 	var tUsercompany model.Usercompany
 
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	if utils.IsValidEmail(req.Username) {
@@ -115,7 +116,7 @@ func (u usecase) RefreshToken(userLogin jwt.UserLogin) (token string, err error)
 }
 
 func (u usecase) Init(userLogin jwt.UserLogin) (vUser model.UserView, err error) {
-	conn, closeConn := db.GetConnection()
+	conn, closeConn := u.baseUsecase.WithConn()
 	defer closeConn()
 
 	userPreloads := []string{"Company", "Company.Properties", "Company.Properties.Propertytimeline", "Company.Properties.Units", "Usercompanies", "Usercompanies.Company", "Usercompanies.User"}
@@ -127,8 +128,9 @@ func (u usecase) Init(userLogin jwt.UserLogin) (vUser model.UserView, err error)
 	return vUser, err
 }
 
-func NewUsecase(userRepository user.Repository, companyRepository company.Repository, usercompanyRepository usercompany.Repository) Usecase {
-	return usecase{
+func NewUsecase(baseUsecase base.Usecase, userRepository user.Repository, companyRepository company.Repository, usercompanyRepository usercompany.Repository) Usecase {
+	return &usecase{
+		baseUsecase:           baseUsecase,
 		userRepository:        userRepository,
 		companyRepository:     companyRepository,
 		usercompanyRepository: usercompanyRepository,
