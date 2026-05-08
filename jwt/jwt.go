@@ -3,15 +3,16 @@ package jwt
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/golang-jwt/jwt"
 	"github.com/jihanlugas/calendar/config"
 	"github.com/jihanlugas/calendar/constant"
 	"github.com/jihanlugas/calendar/response"
 	"github.com/labstack/echo/v4"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type UserLogin struct {
@@ -121,14 +122,4 @@ func parseToken(token string) (jwt.MapClaims, error) {
 	}
 
 	return claims, nil
-}
-
-func IsSaveCompanyIDOR(loginUser UserLogin, companyId string) bool {
-	if loginUser.Role != constant.RoleAdmin {
-		if loginUser.CompanyID != companyId {
-			return true
-		}
-	}
-
-	return false
 }

@@ -19,8 +19,7 @@ type usecase struct {
 }
 
 func (u usecase) GetById(id string) (tPhoto model.Photo, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tPhoto, err = u.repository.GetById(conn, id)
 	if err != nil {

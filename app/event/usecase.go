@@ -32,8 +32,7 @@ type usecase struct {
 }
 
 func (u usecase) Timeline(loginUser jwt.UserLogin, req request.TimelineEvent) (vEvents []model.EventView, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
 		return vEvents, err
@@ -48,8 +47,7 @@ func (u usecase) Timeline(loginUser jwt.UserLogin, req request.TimelineEvent) (v
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageEvent) (vEvents []model.EventView, count int64, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
 		return vEvents, count, err
@@ -64,8 +62,7 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageEvent) (vEvents [
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vEvent model.EventView, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	vEvent, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
@@ -81,8 +78,7 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error {
 	var err error
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
 		return err
@@ -151,8 +147,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEvent) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tEvent, err := u.repository.GetTableById(conn, id)
 	if err != nil {
@@ -190,8 +185,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEv
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tEvent, err := u.repository.GetTableById(conn, id)
 	if err != nil {
@@ -218,8 +212,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 }
 
 func (u usecase) Confirm(loginUser jwt.UserLogin, id string) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tEvent, err := u.repository.GetTableById(conn, id)
 	if err != nil {

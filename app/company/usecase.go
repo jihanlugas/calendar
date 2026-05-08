@@ -31,8 +31,7 @@ func NewUsecase(baseUsecase base.Usecase, repository Repository, repositoryUserc
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCompany) (err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tCompany, err := u.repository.GetTableById(conn, id)
 	if err != nil {

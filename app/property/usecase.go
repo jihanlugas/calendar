@@ -32,8 +32,7 @@ type usecase struct {
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageProperty) (vProperties []model.PropertyView, count int64, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
 		return vProperties, count, err
@@ -48,8 +47,7 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageProperty) (vPrope
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vProperty model.PropertyView, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	vProperty, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
@@ -68,8 +66,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 		return err
 	}
 
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tProperty := model.Property{
 		ID:          utils.GetUniqueID(),
@@ -143,8 +140,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateProperty) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tProperty, err := u.repository.GetTableById(conn, id)
 	if err != nil {
@@ -172,8 +168,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tProperty, err := u.repository.GetTableById(conn, id)
 	if err != nil {
@@ -200,8 +195,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 }
 
 func (u usecase) GetPrice(req request.GetPrice) (price int64, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	price, err = u.repositoryPropertyprice.GetPrice(conn, req)
 	if err != nil {
@@ -212,8 +206,7 @@ func (u usecase) GetPrice(req request.GetPrice) (price int64, err error) {
 }
 
 func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req request.SortPropertyPrice) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tProperty, err := u.repository.GetTableById(conn, id)
 	if err != nil {

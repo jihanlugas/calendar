@@ -30,8 +30,7 @@ func NewUsecase(baseUsecase base.Usecase, repository Repository) Usecase {
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageCompanypaymentmethod) (vCompanypaymentmethods []model.CompanypaymentmethodView, count int64, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
 	if err != nil {
@@ -47,8 +46,7 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageCompanypaymentmet
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vCompanypaymentmethod model.CompanypaymentmethodView, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	vCompanypaymentmethod, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
@@ -70,8 +68,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateCompanypaymen
 		return err
 	}
 
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tCompanypaymentmethod := model.Companypaymentmethod{
 		CompanyID:       req.CompanyID,
@@ -96,8 +93,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateCompanypaymen
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCompanypaymentmethod) (err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tCompanypaymentmethod, err := u.repository.GetTableById(conn, id)
 	if err != nil {
@@ -127,8 +123,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCo
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) (err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tCompanypaymentmethod, err := u.repository.GetTableById(conn, id)
 	if err != nil {

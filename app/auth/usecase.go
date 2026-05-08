@@ -36,8 +36,7 @@ func (u usecase) SignIn(req request.Signin) (token string, userLogin jwt.UserLog
 	var tCompany model.Company
 	var tUsercompany model.Usercompany
 
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	if utils.IsValidEmail(req.Username) {
 		tUser, err = u.userRepository.GetByEmail(conn, req.Username)
@@ -116,8 +115,7 @@ func (u usecase) RefreshToken(userLogin jwt.UserLogin) (token string, err error)
 }
 
 func (u usecase) Init(userLogin jwt.UserLogin) (vUser model.UserView, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	userPreloads := []string{"Company", "Company.Properties", "Company.Properties.Propertytimeline", "Company.Properties.Units", "Usercompanies", "Usercompanies.Company", "Usercompanies.User"}
 	vUser, err = u.userRepository.GetViewById(conn, userLogin.UserID, userPreloads...)

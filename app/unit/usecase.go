@@ -31,8 +31,7 @@ func NewUsecase(baseUsecase base.Usecase, repository Repository) Usecase {
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageUnit) (vUnits []model.UnitView, count int64, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
 		return vUnits, count, err
@@ -47,8 +46,7 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageUnit) (vUnits []m
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vUnit model.UnitView, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	vUnit, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
@@ -67,8 +65,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUnit) error {
 		return err
 	}
 
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tUnit := model.Unit{
 		ID:          utils.GetUniqueID(),
@@ -94,8 +91,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUnit) error {
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUnit) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tUnit, err := u.repository.GetTableById(conn, id)
 	if err != nil {
@@ -123,8 +119,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUn
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tUnit, err := u.repository.GetTableById(conn, id)
 	if err != nil {

@@ -27,8 +27,7 @@ func NewUsecase(baseUsecase base.Usecase, repository Repository) Usecase {
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vPropertyprice model.PropertypriceView, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	vPropertyprice, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
@@ -47,8 +46,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertyprice
 		return err
 	}
 
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	countPropertyprices, err := u.repository.CountByPropertyID(conn, req.PropertyID)
 	if err != nil {
@@ -81,8 +79,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertyprice
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePropertyprice) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tPropertyprice, err := u.repository.GetTableById(conn, id)
 	if err != nil {
@@ -111,8 +108,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tPropertyprice, err := u.repository.GetTableById(conn, id)
 	if err != nil {

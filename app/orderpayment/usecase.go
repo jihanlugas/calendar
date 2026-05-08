@@ -21,8 +21,7 @@ type usecase struct {
 }
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateOrderpayment) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
 		return err

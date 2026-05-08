@@ -32,8 +32,7 @@ type usecase struct {
 }
 
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageUser) (vUsers []model.UserView, count int64, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
 		return vUsers, count, err
@@ -48,8 +47,7 @@ func (u usecase) Page(loginUser jwt.UserLogin, req request.PageUser) (vUsers []m
 }
 
 func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vUser model.UserView, err error) {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	vUser, err = u.repository.GetViewById(conn, id, preloads...)
 	if err != nil {
@@ -69,8 +67,7 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 }
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	now := time.Now()
 
@@ -127,8 +124,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUser) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tUser, err := u.repository.GetTableById(conn, id)
 	if err != nil {
@@ -188,8 +184,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUs
 }
 
 func (u usecase) ChangePassword(loginUser jwt.UserLogin, req request.ChangePassword) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tUser, err := u.repository.GetTableById(conn, loginUser.UserID)
 	if err != nil {
@@ -224,8 +219,7 @@ func (u usecase) ChangePassword(loginUser jwt.UserLogin, req request.ChangePassw
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
-	conn, closeConn := u.baseUsecase.WithConn()
-	defer closeConn()
+	conn := u.baseUsecase.GetConnection()
 
 	tUser, err := u.repository.GetTableById(conn, id)
 	if err != nil {
