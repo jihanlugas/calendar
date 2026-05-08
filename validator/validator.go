@@ -3,6 +3,13 @@ package validator
 import (
 	"encoding/base64"
 	"errors"
+	"reflect"
+	"regexp"
+	"slices"
+	"strings"
+	"time"
+	"unicode"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/jihanlugas/calendar/app/company"
 	"github.com/jihanlugas/calendar/app/user"
@@ -10,12 +17,6 @@ import (
 	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/utils"
 	"gorm.io/gorm"
-	"reflect"
-	"regexp"
-	"slices"
-	"strings"
-	"time"
-	"unicode"
 )
 
 var (
@@ -74,8 +75,7 @@ func notExistsOnDbTable(fl validator.FieldLevel) bool {
 
 	userRepo := user.NewRepository()
 
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
+	conn := db.GetPostgresConnection()
 
 	switch params[0] {
 	case "username":
@@ -115,8 +115,7 @@ func existsDataOnDbTable(fl validator.FieldLevel) bool {
 	companyRepo := company.NewRepository()
 	userRepo := user.NewRepository()
 
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
+	conn := db.GetPostgresConnection()
 
 	switch params[0] {
 	case "user_id":

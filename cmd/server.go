@@ -9,17 +9,11 @@ import (
 	"time"
 
 	"github.com/jihanlugas/calendar/config"
-	"github.com/jihanlugas/calendar/db"
 	"github.com/jihanlugas/calendar/router"
 )
 
 func runServer() {
 	var err error
-
-	// Initialize global DB connection
-	globalDB, closeConn := db.GetConnection()
-	db.SetGlobalDB(globalDB)
-	defer closeConn()
 
 	r := router.Init()
 

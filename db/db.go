@@ -38,16 +38,6 @@ var Dns = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=dis
 	config.Database.Port,
 )
 
-var GlobalDB *gorm.DB
-
-func SetGlobalDB(db *gorm.DB) {
-	GlobalDB = db
-}
-
-func GetGlobalConnection() *gorm.DB {
-	return GlobalDB
-}
-
 func NewDatabase() (*gorm.DB, error) {
 	logLevel := logger.Silent
 	if config.Debug {
@@ -68,20 +58,4 @@ func NewDatabase() (*gorm.DB, error) {
 	})
 
 	return client, err
-}
-
-func GetConnection() (*gorm.DB, CloseConn) {
-	var err error
-	db, err := NewDatabase()
-
-	if err != nil {
-		panic(err)
-	}
-
-	sqlDb, err := db.DB()
-	if err != nil {
-		panic(err)
-	}
-
-	return db, closeConn(sqlDb)
 }

@@ -25,8 +25,7 @@ func dbUp() {
 func dbUpTable() {
 	var err error
 
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
+	conn := db.GetPostgresConnection()
 
 	err = conn.Migrator().AutoMigrate(&model.User{})
 	if err != nil {
@@ -109,8 +108,7 @@ func dbUpTable() {
 func dbUpView() {
 	var err error
 
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
+	conn := db.GetPostgresConnection()
 
 	err = conn.Migrator().DropView(model.VIEW_PAYMENTMETHOD)
 	if err != nil {
@@ -514,8 +512,7 @@ func dbUpView() {
 }
 
 func dbUpListener() {
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
+	conn := db.GetPostgresConnection()
 
 	createFunction := `
 		CREATE OR REPLACE FUNCTION notify_event_changes()
@@ -582,8 +579,7 @@ func dbDown() {
 	log.Println("Reverting database migrations...")
 	var err error
 
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
+	conn := db.GetPostgresConnection()
 
 	err = conn.Exec("DROP SCHEMA public CASCADE").Error
 	if err != nil {
@@ -609,8 +605,7 @@ func dbDown() {
 func dbSeed() {
 	log.Println("Seeding the database with initial data start")
 
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
+	conn := db.GetPostgresConnection()
 
 	propertypriceRepo := propertyprice.NewRepository()
 

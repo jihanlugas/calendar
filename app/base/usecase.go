@@ -22,7 +22,7 @@ func NewUsecase() Usecase {
 }
 
 func (u *usecase) GetConnection() *gorm.DB {
-	return db.GetGlobalConnection()
+	return db.GetPostgresConnection()
 }
 
 func (u *usecase) RequireCompanyIDAllowed(loginUser jwt.UserLogin, companyID string) (err error) {

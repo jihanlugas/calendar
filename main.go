@@ -1,6 +1,9 @@
 package main
 
-import "github.com/jihanlugas/calendar/cmd"
+import (
+	"github.com/jihanlugas/calendar/cmd"
+	"github.com/jihanlugas/calendar/db"
+)
 
 // @title           Swagger calendar API
 // @version         1.0
@@ -19,5 +22,8 @@ import "github.com/jihanlugas/calendar/cmd"
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
+	closeConn := db.InitPostgres()
+	defer closeConn()
+
 	cmd.Execute()
 }

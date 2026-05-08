@@ -220,8 +220,7 @@ func checkTokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return response.ErrorForce(http.StatusUnauthorized, err.Error()).SendJSON(c)
 		}
 
-		conn, closeConn := db.GetConnection()
-		defer closeConn()
+		conn := db.GetPostgresConnection()
 
 		var user model.User
 		err = conn.Where("id = ? ", userLogin.UserID).First(&user).Error

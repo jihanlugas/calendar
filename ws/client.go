@@ -38,8 +38,7 @@ func (c *Client) ReadPump() {
 		c.Conn.Close()
 	}()
 
-	conn, closeConn := db.GetConnection()
-	defer closeConn()
+	conn := db.GetPostgresConnection()
 
 	eventRepo := event.NewRepository()
 
