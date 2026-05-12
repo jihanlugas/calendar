@@ -70,7 +70,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCo
 
 	err = tx.Commit().Error
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return err

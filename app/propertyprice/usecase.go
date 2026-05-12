@@ -1,6 +1,8 @@
 package propertyprice
 
 import (
+	"fmt"
+
 	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/jwt"
 	"github.com/jihanlugas/calendar/model"
@@ -9,9 +11,9 @@ import (
 
 type Usecase interface {
 	GetById(loginUser jwt.UserLogin, id string, preloads ...string) (vProperty model.PropertypriceView, err error)
-	Create(loginUser jwt.UserLogin, req request.CreatePropertyprice) error
-	Update(loginUser jwt.UserLogin, id string, req request.UpdatePropertyprice) error
-	Delete(loginUser jwt.UserLogin, id string) error
+	Create(loginUser jwt.UserLogin, req request.CreatePropertyprice) (err error)
+	Update(loginUser jwt.UserLogin, id string, req request.UpdatePropertyprice) (err error)
+	Delete(loginUser jwt.UserLogin, id string) (err error)
 }
 
 type usecase struct {
@@ -41,8 +43,9 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 	return vPropertyprice, nil
 }
 
-func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertyprice) error {
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertyprice) (err error) {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
 		return err
 	}
 
@@ -75,10 +78,14 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertyprice
 		return err
 	}
 
-	return tx.Commit().Error
+	err = tx.Commit().Error
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
 }
 
-func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePropertyprice) error {
+func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePropertyprice) (err error) {
 	conn := u.baseUsecase.GetConnection()
 
 	tPropertyprice, err := u.repository.GetTableById(conn, id)
@@ -86,7 +93,8 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 		return err
 	}
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tPropertyprice.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tPropertyprice.CompanyID)
+	if err != nil {
 		return err
 	}
 
@@ -104,10 +112,14 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 		return err
 	}
 
-	return tx.Commit().Error
+	err = tx.Commit().Error
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
 }
 
-func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
+func (u usecase) Delete(loginUser jwt.UserLogin, id string) (err error) {
 	conn := u.baseUsecase.GetConnection()
 
 	tPropertyprice, err := u.repository.GetTableById(conn, id)
@@ -115,7 +127,8 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return err
 	}
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tPropertyprice.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tPropertyprice.CompanyID)
+	if err != nil {
 		return err
 	}
 
@@ -129,5 +142,9 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return err
 	}
 
-	return tx.Commit().Error
+	err = tx.Commit().Error
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
 }

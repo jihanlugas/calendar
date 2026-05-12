@@ -11,7 +11,7 @@ import (
 )
 
 type Usecase interface {
-	Create(loginUser jwt.UserLogin, req request.CreateOrderpayment) error
+	Create(loginUser jwt.UserLogin, req request.CreateOrderpayment) (err error)
 }
 
 type usecase struct {
@@ -20,10 +20,11 @@ type usecase struct {
 	companypaymentmethodRepository companypaymentmethod.Repository
 }
 
-func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateOrderpayment) error {
+func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateOrderpayment) (err error) {
 	conn := u.baseUsecase.GetConnection()
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
 		return err
 	}
 
@@ -51,7 +52,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateOrderpayment)
 
 	err = tx.Commit().Error
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return err

@@ -34,7 +34,8 @@ type usecase struct {
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageUser) (vUsers []model.UserView, count int64, err error) {
 	conn := u.baseUsecase.GetConnection()
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
 		return vUsers, count, err
 	}
 
@@ -120,7 +121,11 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
 		return fmt.Errorf("failed to create %s: %v", u.repositoryCompany.Name(), err)
 	}
 
-	return tx.Commit().Error
+	err = tx.Commit().Error
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUser) error {
@@ -180,7 +185,11 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUs
 		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
-	return tx.Commit().Error
+	err = tx.Commit().Error
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
 }
 
 func (u usecase) ChangePassword(loginUser jwt.UserLogin, req request.ChangePassword) error {
@@ -215,7 +224,11 @@ func (u usecase) ChangePassword(loginUser jwt.UserLogin, req request.ChangePassw
 		return fmt.Errorf("failed to update password: %v", err)
 	}
 
-	return tx.Commit().Error
+	err = tx.Commit().Error
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
@@ -245,7 +258,11 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
 	}
 
-	return tx.Commit().Error
+	err = tx.Commit().Error
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
 }
 
 func NewUsecase(baseUsecase base.Usecase, repository Repository, repositoryCompany usercompany.Repository) Usecase {

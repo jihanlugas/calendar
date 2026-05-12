@@ -33,7 +33,8 @@ func NewUsecase(baseUsecase base.Usecase, repository Repository) Usecase {
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageProduct) (vProducts []model.ProductView, count int64, err error) {
 	conn := u.baseUsecase.GetConnection()
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
 		return vProducts, count, err
 	}
 
@@ -61,7 +62,8 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 }
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProduct) (err error) {
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
 		return err
 	}
 

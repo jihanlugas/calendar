@@ -34,7 +34,8 @@ type usecase struct {
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageProperty) (vProperties []model.PropertyView, count int64, err error) {
 	conn := u.baseUsecase.GetConnection()
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
 		return vProperties, count, err
 	}
 
@@ -62,7 +63,9 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 }
 
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) error {
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+	var err error
+
+	if err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
 		return err
 	}
 
@@ -136,7 +139,11 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err)
 	}
 
-	return tx.Commit().Error
+	err = tx.Commit().Error
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
 }
 
 func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateProperty) error {
@@ -164,7 +171,11 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
 
-	return tx.Commit().Error
+	err = tx.Commit().Error
+	if err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+	return nil
 }
 
 func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
@@ -225,7 +236,8 @@ func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req reque
 			return fmt.Errorf("failed to get %s: %v", u.repositoryPropertyprice.Name(), err)
 		}
 
-		if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tPropertyprice.CompanyID); err != nil {
+		err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tPropertyprice.CompanyID)
+		if err != nil {
 			return err
 		}
 
@@ -238,7 +250,7 @@ func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req reque
 
 	err = tx.Commit().Error
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jihanlugas/calendar/app/base"
@@ -85,7 +86,7 @@ func (u usecase) SignIn(req request.Signin) (token string, userLogin jwt.UserLog
 
 	err = tx.Commit().Error
 	if err != nil {
-		return "", userLogin, err
+		return "", userLogin, fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	expiredAt := time.Now().Add(time.Minute * time.Duration(config.AuthTokenExpiredMinute))

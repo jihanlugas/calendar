@@ -34,7 +34,8 @@ type usecase struct {
 func (u usecase) Timeline(loginUser jwt.UserLogin, req request.TimelineEvent) (vEvents []model.EventView, err error) {
 	conn := u.baseUsecase.GetConnection()
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
 		return vEvents, err
 	}
 
@@ -49,7 +50,8 @@ func (u usecase) Timeline(loginUser jwt.UserLogin, req request.TimelineEvent) (v
 func (u usecase) Page(loginUser jwt.UserLogin, req request.PageEvent) (vEvents []model.EventView, count int64, err error) {
 	conn := u.baseUsecase.GetConnection()
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
 		return vEvents, count, err
 	}
 
@@ -80,7 +82,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 	var err error
 	conn := u.baseUsecase.GetConnection()
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
 		return err
 	}
 
@@ -140,7 +143,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 
 	err = tx.Commit().Error
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return err
@@ -178,7 +181,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEv
 
 	err = tx.Commit().Error
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return err
@@ -205,7 +208,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 
 	err = tx.Commit().Error
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return err
@@ -238,7 +241,7 @@ func (u usecase) Confirm(loginUser jwt.UserLogin, id string) error {
 
 	err = tx.Commit().Error
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return err

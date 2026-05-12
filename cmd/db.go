@@ -953,7 +953,7 @@ func dbSeed() {
 
 	err = tx.Commit().Error
 	if err != nil {
-		panic(err)
+		panic(fmt.Errorf("failed to commit transaction: %w", err))
 	}
 
 	log.Println("Seeding the database with initial data end")
