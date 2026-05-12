@@ -59,8 +59,7 @@ func (c *Client) ReadPump() {
 		switch data.Type {
 		case constant.WS_TYPE_GET_EVENT:
 			req := new(request.TimelineEvent)
-			err = bindPayload(data.Payload, req)
-			if err != nil {
+			if err := bindPayload(data.Payload, req); err != nil {
 				fmt.Println("error bind payload:", err)
 				break
 			}
