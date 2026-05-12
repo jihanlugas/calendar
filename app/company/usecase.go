@@ -48,7 +48,8 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateCo
 			return fmt.Errorf("failed to get %s: %v", u.repositoryUsercompany.Name(), err)
 		}
 
-		if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID); err != nil {
+		err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID)
+		if err != nil {
 			return err
 		}
 	default:

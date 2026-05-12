@@ -512,6 +512,7 @@ func dbUpView() {
 }
 
 func dbUpListener() {
+	var err error
 	conn := db.GetPostgresConnection()
 
 	createFunction := `
@@ -545,7 +546,8 @@ func dbUpListener() {
 		END;
 		$$ LANGUAGE plpgsql;
 		`
-	if err := conn.Exec(createFunction).Error; err != nil {
+	err = conn.Exec(createFunction).Error
+	if err != nil {
 		panic("failed to create notify_event_changes FUNCTION: " + err.Error())
 	}
 
@@ -559,7 +561,8 @@ func dbUpListener() {
 			END IF;
 		END$$;
 		`
-	if err := conn.Exec(dropTrigger).Error; err != nil {
+	err = conn.Exec(dropTrigger).Error
+	if err != nil {
 		panic("failed to drop existing trigger: " + err.Error())
 	}
 
@@ -568,7 +571,8 @@ func dbUpListener() {
 		AFTER INSERT OR UPDATE OR DELETE ON events
 		FOR EACH ROW EXECUTE FUNCTION notify_event_changes();
 		`
-	if err := conn.Exec(createTrigger).Error; err != nil {
+	err = conn.Exec(createTrigger).Error
+	if err != nil {
 		panic("failed to create event_notify_trigger: " + err.Error())
 	}
 
