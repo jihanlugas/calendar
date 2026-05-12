@@ -71,8 +71,7 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vEvent, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vEvent.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vEvent.CompanyID); err != nil {
 		return vEvent, err
 	}
 
@@ -158,8 +157,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateEv
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tEvent.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tEvent.CompanyID); err != nil {
 		return err
 	}
 
@@ -197,8 +195,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tEvent.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tEvent.CompanyID); err != nil {
 		return err
 	}
 
@@ -225,8 +222,7 @@ func (u usecase) Confirm(loginUser jwt.UserLogin, id string) error {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tEvent.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tEvent.CompanyID); err != nil {
 		return err
 	}
 

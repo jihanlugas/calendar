@@ -54,8 +54,7 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vProduct, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vProduct.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vProduct.CompanyID); err != nil {
 		return vProduct, err
 	}
 
@@ -103,8 +102,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProduct.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProduct.CompanyID); err != nil {
 		return err
 	}
 
@@ -135,8 +133,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) (err error) {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProduct.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProduct.CompanyID); err != nil {
 		return err
 	}
 

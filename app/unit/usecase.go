@@ -54,8 +54,7 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vUnit, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUnit.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUnit.CompanyID); err != nil {
 		return vUnit, err
 	}
 
@@ -65,8 +64,7 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUnit) error {
 	var err error
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
-	if err != nil {
+	if err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
 		return err
 	}
 
@@ -87,8 +85,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUnit) error {
 		return tx.Error
 	}
 
-	err = u.repository.Create(tx, tUnit)
-	if err != nil {
+	if err := u.repository.Create(tx, tUnit); err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
@@ -108,8 +105,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUn
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tUnit.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tUnit.CompanyID); err != nil {
 		return err
 	}
 
@@ -121,8 +117,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUn
 	tUnit.Name = req.Name
 	tUnit.Description = req.Description
 	tUnit.UpdateBy = loginUser.UserID
-	err = u.repository.Save(tx, tUnit)
-	if err != nil {
+	if err := u.repository.Save(tx, tUnit); err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
@@ -142,8 +137,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tUnit.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tUnit.CompanyID); err != nil {
 		return err
 	}
 
@@ -152,8 +146,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return tx.Error
 	}
 
-	err = u.repository.Delete(tx, tUnit)
-	if err != nil {
+	if err := u.repository.Delete(tx, tUnit); err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
 	}

@@ -59,8 +59,7 @@ func (h Handler) GetById(c echo.Context) error {
 
 	// Simpan ke buffer
 	var buf bytes.Buffer
-	err = png.Encode(&buf, img)
-	if err != nil {
+	if err := png.Encode(&buf, img); err != nil {
 		return c.String(http.StatusInternalServerError, "Error encoding image")
 	}
 

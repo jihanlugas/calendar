@@ -55,18 +55,17 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vProperty, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vProperty.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vProperty.CompanyID); err != nil {
 		return vProperty, err
 	}
 
 	return vProperty, nil
 }
 
-func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) (err error) {
+func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) error {
+	var err error
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
-	if err != nil {
+	if err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
 		return err
 	}
 
@@ -86,8 +85,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) (er
 		return tx.Error
 	}
 
-	err = u.repository.Create(tx, tProperty)
-	if err != nil {
+	if err := u.repository.Create(tx, tProperty); err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
@@ -98,8 +96,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) (er
 		UpdateBy: loginUser.UserID,
 	}
 
-	err = u.repositoryPropertytimeline.Create(tx, tPropertytimeline)
-	if err != nil {
+	if err := u.repositoryPropertytimeline.Create(tx, tPropertytimeline); err != nil {
 		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err)
 	}
 
@@ -117,8 +114,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) (er
 		tUnits = append(tUnits, tUnit)
 	}
 
-	err = u.repositoryUnit.Creates(tx, tUnits)
-	if err != nil {
+	if err := u.repositoryUnit.Creates(tx, tUnits); err != nil {
 		return fmt.Errorf("failed to create %s: %v", u.repositoryUnit.Name(), err)
 	}
 
@@ -138,8 +134,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) (er
 		tPropertyprices = append(tPropertyprices, tPropertyprice)
 	}
 
-	err = u.repositoryPropertyprice.Creates(tx, tPropertyprices)
-	if err != nil {
+	if err := u.repositoryPropertyprice.Creates(tx, tPropertyprices); err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err)
 	}
@@ -151,7 +146,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) (er
 	return nil
 }
 
-func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateProperty) (err error) {
+func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateProperty) error {
 	conn := u.baseUsecase.GetConnection()
 
 	tProperty, err := u.repository.GetTableById(conn, id)
@@ -159,8 +154,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID); err != nil {
 		return err
 	}
 
@@ -172,8 +166,7 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 	tProperty.Name = req.Name
 	tProperty.Description = req.Description
 	tProperty.UpdateBy = loginUser.UserID
-	err = u.repository.Save(tx, tProperty)
-	if err != nil {
+	if err := u.repository.Save(tx, tProperty); err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
@@ -193,8 +186,7 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID); err != nil {
 		return err
 	}
 
@@ -232,8 +224,7 @@ func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req reque
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID)
-	if err != nil {
+	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID); err != nil {
 		return err
 	}
 
