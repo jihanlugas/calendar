@@ -24,7 +24,8 @@ type repository struct {
 func (r repository) GetPrice(conn *gorm.DB, req request.GetPrice) (int64, error) {
 	var prices []model.Propertyprice
 
-	if err := conn.Where("property_id = ?", req.PropertyID).Order("priority DESC").Find(&prices).Error; err != nil {
+	err := conn.Where("property_id = ?", req.PropertyID).Order("priority DESC").Find(&prices).Error
+	if err != nil {
 		return 0, err
 	}
 	if len(prices) == 0 {

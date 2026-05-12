@@ -55,17 +55,18 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vProperty, fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vProperty.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vProperty.CompanyID)
+	if err != nil {
 		return vProperty, err
 	}
 
 	return vProperty, nil
 }
 
-func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) error {
-	var err error
+func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) (err error) {
 
-	if err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, req.CompanyID)
+	if err != nil {
 		return err
 	}
 
@@ -85,7 +86,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 		return tx.Error
 	}
 
-	if err := u.repository.Create(tx, tProperty); err != nil {
+	err = u.repository.Create(tx, tProperty)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
@@ -96,7 +98,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 		UpdateBy: loginUser.UserID,
 	}
 
-	if err := u.repositoryPropertytimeline.Create(tx, tPropertytimeline); err != nil {
+	err = u.repositoryPropertytimeline.Create(tx, tPropertytimeline)
+	if err != nil {
 		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err)
 	}
 
@@ -114,7 +117,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 		tUnits = append(tUnits, tUnit)
 	}
 
-	if err := u.repositoryUnit.Creates(tx, tUnits); err != nil {
+	err = u.repositoryUnit.Creates(tx, tUnits)
+	if err != nil {
 		return fmt.Errorf("failed to create %s: %v", u.repositoryUnit.Name(), err)
 	}
 
@@ -134,7 +138,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateProperty) err
 		tPropertyprices = append(tPropertyprices, tPropertyprice)
 	}
 
-	if err := u.repositoryPropertyprice.Creates(tx, tPropertyprices); err != nil {
+	err = u.repositoryPropertyprice.Creates(tx, tPropertyprices)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repositoryPropertytimeline.Name(), err)
 	}
@@ -154,7 +159,8 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID)
+	if err != nil {
 		return err
 	}
 
@@ -166,7 +172,8 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 	tProperty.Name = req.Name
 	tProperty.Description = req.Description
 	tProperty.UpdateBy = loginUser.UserID
-	if err := u.repository.Save(tx, tProperty); err != nil {
+	err = u.repository.Save(tx, tProperty)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
@@ -186,7 +193,8 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID)
+	if err != nil {
 		return err
 	}
 
@@ -216,7 +224,7 @@ func (u usecase) GetPrice(req request.GetPrice) (price int64, err error) {
 	return
 }
 
-func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req request.SortPropertyPrice) error {
+func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req request.SortPropertyPrice) (err error) {
 	conn := u.baseUsecase.GetConnection()
 
 	tProperty, err := u.repository.GetTableById(conn, id)
@@ -224,7 +232,8 @@ func (u usecase) SortPropertyPrice(loginUser jwt.UserLogin, id string, req reque
 		return fmt.Errorf("failed to get %s: %v", u.repository.Name(), err)
 	}
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, tProperty.CompanyID)
+	if err != nil {
 		return err
 	}
 

@@ -36,7 +36,8 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vPropertyprice, err
 	}
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vPropertyprice.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vPropertyprice.CompanyID)
+	if err != nil {
 		return vPropertyprice, err
 	}
 
@@ -73,7 +74,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreatePropertyprice
 		return tx.Error
 	}
 
-	if err := u.repository.Create(tx, tPropertyprice); err != nil {
+	err = u.repository.Create(tx, tPropertyprice)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return err
 	}
@@ -107,7 +109,8 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdatePr
 	tPropertyprice.Weekdays = req.Weekdays
 	tPropertyprice.StartTime = req.StartTime
 	tPropertyprice.EndTime = req.EndTime
-	if err := u.repository.Save(tx, tPropertyprice); err != nil {
+	err = u.repository.Save(tx, tPropertyprice)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return err
 	}
@@ -137,7 +140,8 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) (err error) {
 		return tx.Error
 	}
 
-	if err := u.repository.Delete(tx, tPropertyprice); err != nil {
+	err = u.repository.Delete(tx, tPropertyprice)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return err
 	}

@@ -60,7 +60,8 @@ func (u usecase) GetById(loginUser jwt.UserLogin, id string, preloads ...string)
 		return vUser, fmt.Errorf("failed to get %s: %v", u.repositoryCompany.Name(), err)
 	}
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID)
+	if err != nil {
 		return vUser, err
 	}
 
@@ -102,7 +103,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
 		return tx.Error
 	}
 
-	if err := u.repository.Create(tx, tUser); err != nil {
+	err = u.repository.Create(tx, tUser)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repository.Name(), err)
 	}
@@ -116,7 +118,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateUser) error {
 		CreateBy:         loginUser.UserID,
 		UpdateBy:         loginUser.UserID,
 	}
-	if err := u.repositoryCompany.Create(tx, tUsercompany); err != nil {
+	err = u.repositoryCompany.Create(tx, tUsercompany)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to create %s: %v", u.repositoryCompany.Name(), err)
 	}
@@ -141,7 +144,8 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUs
 		return fmt.Errorf("failed to update %s: %v", u.repositoryCompany.Name(), err)
 	}
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID)
+	if err != nil {
 		return err
 	}
 
@@ -180,7 +184,8 @@ func (u usecase) Update(loginUser jwt.UserLogin, id string, req request.UpdateUs
 	tUser.BirthDt = req.BirthDt
 	tUser.BirthPlace = req.BirthPlace
 	tUser.UpdateBy = loginUser.UserID
-	if err := u.repository.Save(tx, tUser); err != nil {
+	err = u.repository.Save(tx, tUser)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to update %s: %v", u.repository.Name(), err)
 	}
@@ -205,7 +210,8 @@ func (u usecase) ChangePassword(loginUser jwt.UserLogin, req request.ChangePassw
 		return tx.Error
 	}
 
-	if err := cryption.CheckAES64(req.CurrentPasswd, tUser.Passwd); err != nil {
+	err = cryption.CheckAES64(req.CurrentPasswd, tUser.Passwd)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("invalid current password")
 	}
@@ -219,7 +225,8 @@ func (u usecase) ChangePassword(loginUser jwt.UserLogin, req request.ChangePassw
 	tUser.Passwd = encodePasswd
 	tUser.PassVersion += 1
 	tUser.UpdateBy = loginUser.UserID
-	if err := u.repository.Save(tx, tUser); err != nil {
+	err = u.repository.Save(tx, tUser)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to update password: %v", err)
 	}
@@ -244,7 +251,8 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return fmt.Errorf("failed to get %s: %v", u.repositoryCompany.Name(), err)
 	}
 
-	if err := u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID); err != nil {
+	err = u.baseUsecase.RequireCompanyIDAllowed(loginUser, vUsercompany.CompanyID)
+	if err != nil {
 		return err
 	}
 
@@ -253,7 +261,8 @@ func (u usecase) Delete(loginUser jwt.UserLogin, id string) error {
 		return tx.Error
 	}
 
-	if err := u.repository.Delete(tx, tUser); err != nil {
+	err = u.repository.Delete(tx, tUser)
+	if err != nil {
 		_ = tx.Rollback().Error
 		return fmt.Errorf("failed to delete %s: %v", u.repository.Name(), err)
 	}

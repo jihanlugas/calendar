@@ -6,8 +6,9 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"github.com/jihanlugas/calendar/config"
 	"io"
+
+	"github.com/jihanlugas/calendar/config"
 )
 
 var aesCipher cipher.Block
@@ -45,7 +46,8 @@ func EncryptAES64(text string) (string, error) {
 	nonce := make([]byte, nonceSize)
 	// populates our nonce with a cryptographically secure
 	// random sequence
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
+	_, err := io.ReadFull(rand.Reader, nonce)
+	if err != nil {
 		return "", err
 	}
 

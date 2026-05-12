@@ -100,7 +100,8 @@ func ErrorForce(code int, msg string) *Response {
 }
 
 func (r *Response) SendJSON(c echo.Context) error {
-	if js, err := json.Marshal(r); err != nil {
+	js, err := json.Marshal(r)
+	if err != nil {
 		panic(err)
 	} else {
 		//c.Set(constant.Response, js)

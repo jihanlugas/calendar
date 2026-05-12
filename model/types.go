@@ -72,7 +72,8 @@ func (a Int32Array) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements json.Unmarshaler interface
 func (a *Int32Array) UnmarshalJSON(data []byte) error {
 	var arr []int32
-	if err := json.Unmarshal(data, &arr); err != nil {
+	err := json.Unmarshal(data, &arr)
+	if err != nil {
 		return err
 	}
 	*a = Int32Array(arr)
