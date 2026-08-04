@@ -79,6 +79,10 @@ func dbUpTable() {
 	if err != nil {
 		panic(err)
 	}
+	err = conn.Migrator().AutoMigrate(&model.Customer{})
+	if err != nil {
+		panic(err)
+	}
 	err = conn.Migrator().AutoMigrate(&model.Order{})
 	if err != nil {
 		panic(err)
@@ -348,6 +352,24 @@ func dbUpView() {
 		panic(err)
 	}
 
+	err = conn.Migrator().DropView(model.VIEW_CUSTOMER)
+	if err != nil {
+		panic(err)
+	}
+	vCustomer := conn.Model(&model.Customer{}).Unscoped().
+		Select("customers.*, companies.name as company_name, u1.fullname as create_name, u2.fullname as update_name").
+		Joins("left join companies companies on companies.id = customers.company_id").
+		Joins("left join users u1 on u1.id = customers.create_by").
+		Joins("left join users u2 on u2.id = customers.update_by")
+
+	err = conn.Migrator().CreateView(model.VIEW_CUSTOMER, gorm.ViewOption{
+		Replace: true,
+		Query:   vCustomer,
+	})
+	if err != nil {
+		panic(err)
+	}
+
 	err = conn.Migrator().DropView(model.VIEW_ORDER)
 	if err != nil {
 		panic(err)
@@ -355,6 +377,7 @@ func dbUpView() {
 	subQuery := conn.Model(&model.Order{}).Unscoped().
 		Select("orders.*" +
 			", companies.name as company_name" +
+			", customers.name as customer_name" +
 			", u1.fullname as create_name" +
 			", u2.fullname as update_name" +
 			", coalesce(orderevents.total, 0) as total_orderevent" +
@@ -364,37 +387,38 @@ func dbUpView() {
 			", 0 as rounding" +
 			", coalesce(orderevents.total, 0) + coalesce(orderproducts.total, 0) as subtotal" +
 			", coalesce(orderpayments.total, 0) as payment").
+		Joins(`left join (
+			select orderevents.order_id, COALESCE(sum(orderevents.total), 0) as total
+			from orderevents
+			where orderevents.delete_dt is null
+			group by orderevents.order_id
+		) as orderevents on orderevents.order_id = orders.id`).
+		Joins(`left join (
+			select orderproducts.order_id, COALESCE(sum(orderproducts.total), 0) as total
+			from orderproducts
+			where orderproducts.delete_dt is null
+			group by orderproducts.order_id
+		) as orderproducts on orderproducts.order_id = orders.id`).
+		Joins(`left join (
+			select orderdiscounts.order_id, COALESCE(sum(orderdiscounts.total), 0) as total
+			from orderdiscounts
+			where orderdiscounts.delete_dt is null
+			group by orderdiscounts.order_id
+		) as orderdiscounts on orderdiscounts.order_id = orders.id`).
+		Joins(`left join (
+			select ordertaxes.order_id, COALESCE(sum(ordertaxes.total), 0) as total
+			from ordertaxes
+			where ordertaxes.delete_dt is null
+			group by ordertaxes.order_id
+		) as ordertaxes on ordertaxes.order_id = orders.id`).
+		Joins(`left join (
+			select orderpayments.order_id, COALESCE(sum(orderpayments.total), 0) as total
+			from orderpayments
+			where orderpayments.delete_dt is null
+			group by orderpayments.order_id
+		) as orderpayments on orderpayments.order_id = orders.id`).
 		Joins("left join companies companies on companies.id = orders.company_id").
-		Joins(`left join (
-		select orderevents.order_id, COALESCE(sum(orderevents.total), 0) as total
-		from orderevents
-		where orderevents.delete_dt is null
-		group by orderevents.order_id
-	) as orderevents on orderevents.order_id = orders.id`).
-		Joins(`left join (
-		select orderproducts.order_id, COALESCE(sum(orderproducts.total), 0) as total
-		from orderproducts
-		where orderproducts.delete_dt is null
-		group by orderproducts.order_id
-	) as orderproducts on orderproducts.order_id = orders.id`).
-		Joins(`left join (
-		select orderdiscounts.order_id, COALESCE(sum(orderdiscounts.total), 0) as total
-		from orderdiscounts
-		where orderdiscounts.delete_dt is null
-		group by orderdiscounts.order_id
-	) as orderdiscounts on orderdiscounts.order_id = orders.id`).
-		Joins(`left join (
-		select ordertaxes.order_id, COALESCE(sum(ordertaxes.total), 0) as total
-		from ordertaxes
-		where ordertaxes.delete_dt is null
-		group by ordertaxes.order_id
-	) as ordertaxes on ordertaxes.order_id = orders.id`).
-		Joins(`left join (
-		select orderpayments.order_id, COALESCE(sum(orderpayments.total), 0) as total
-		from orderpayments
-		where orderpayments.delete_dt is null
-		group by orderpayments.order_id
-	) as orderpayments on orderpayments.order_id = orders.id`).
+		Joins("left join customers customers on customers.id = orders.customer_id").
 		Joins("left join users u1 on u1.id = orders.create_by").
 		Joins("left join users u2 on u2.id = orders.update_by")
 
@@ -849,6 +873,60 @@ func dbSeed() {
 	}
 	tx.Create(&units)
 
+	customers := []model.Customer{
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Andi Pratama", Email: "andi.pratama@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567801"), Address: "Jl. Merdeka No. 1, Jakarta", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Budi Santoso", Email: "budi.santoso@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567802"), Address: "Jl. Sudirman No. 2, Bandung", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Citra Lestari", Email: "citra.lestari@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567803"), Address: "Jl. Diponegoro No. 3, Surabaya", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Dedi Kurniawan", Email: "dedi.kurniawan@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567804"), Address: "Jl. Ahmad Yani No. 4, Semarang", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Eka Saputra", Email: "eka.saputra@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567805"), Address: "Jl. Gajah Mada No. 5, Yogyakarta", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Fajar Nugroho", Email: "fajar.nugroho@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567806"), Address: "Jl. Veteran No. 6, Malang", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Galih Ramadhan", Email: "galih.ramadhan@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567807"), Address: "Jl. Pemuda No. 7, Solo", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Hendra Wijaya", Email: "hendra.wijaya@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567808"), Address: "Jl. Kartini No. 8, Bogor", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Indra Gunawan", Email: "indra.gunawan@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567809"), Address: "Jl. Pahlawan No. 9, Depok", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Joko Susilo", Email: "joko.susilo@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567810"), Address: "Jl. Melati No. 10, Tangerang", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Kurniawan Hadi", Email: "kurniawan.hadi@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567811"), Address: "Jl. Mawar No. 11, Bekasi", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Lukman Hakim", Email: "lukman.hakim@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567812"), Address: "Jl. Kenanga No. 12, Cirebon", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Muhammad Rizki", Email: "m.rizki@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567813"), Address: "Jl. Anggrek No. 13, Pekanbaru", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Nanda Prakoso", Email: "nanda.prakoso@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567814"), Address: "Jl. Cempaka No. 14, Medan", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Oki Firmansyah", Email: "oki.firmansyah@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567815"), Address: "Jl. Flamboyan No. 15, Palembang", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Putra Mahendra", Email: "putra.mahendra@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567816"), Address: "Jl. Mangga No. 16, Padang", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Qomarudin", Email: "qomarudin@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567817"), Address: "Jl. Durian No. 17, Lampung", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Rudi Hartono", Email: "rudi.hartono@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567818"), Address: "Jl. Rambutan No. 18, Batam", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Satria Nugraha", Email: "satria.nugraha@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567819"), Address: "Jl. Nangka No. 19, Pontianak", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Teguh Saptono", Email: "teguh.saptono@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567820"), Address: "Jl. Jambu No. 20, Banjarmasin", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Umar Fadli", Email: "umar.fadli@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567821"), Address: "Jl. Cemara No. 21, Samarinda", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Vino Prasetyo", Email: "vino.prasetyo@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567822"), Address: "Jl. Teratai No. 22, Balikpapan", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Wahyu Setiawan", Email: "wahyu.setiawan@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567823"), Address: "Jl. Dahlia No. 23, Makassar", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Yusuf Maulana", Email: "yusuf.maulana@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567824"), Address: "Jl. Anyelir No. 24, Manado", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Zaki Ramadhan", Email: "zaki.ramadhan@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567825"), Address: "Jl. Kamboja No. 25, Denpasar", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Agus Salim", Email: "agus.salim@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567826"), Address: "Jl. Sakura No. 26, Mataram", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Bagus Hidayat", Email: "bagus.hidayat@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567827"), Address: "Jl. Bougenville No. 27, Kupang", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Cahyo Nugroho", Email: "cahyo.nugroho@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567828"), Address: "Jl. Merpati No. 28, Jayapura", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Dimas Prabowo", Email: "dimas.prabowo@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567829"), Address: "Jl. Elang No. 29, Banda Aceh", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Erwin Saputro", Email: "erwin.saputro@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567830"), Address: "Jl. Rajawali No. 30, Jambi", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Farhan Akbar", Email: "farhan.akbar@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567831"), Address: "Jl. Garuda No. 31, Bengkulu", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Gilang Permana", Email: "gilang.permana@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567832"), Address: "Jl. Merak No. 32, Serang", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Hafiz Maulana", Email: "hafiz.maulana@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567833"), Address: "Jl. Cendrawasih No. 33, Cilegon", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Iqbal Ramdani", Email: "iqbal.ramdani@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567834"), Address: "Jl. Kasuari No. 34, Tasikmalaya", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Jefri Kurnia", Email: "jefri.kurnia@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567835"), Address: "Jl. Camar No. 35, Garut", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Kevin Adrian", Email: "kevin.adrian@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567836"), Address: "Jl. Pipit No. 36, Purwokerto", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Lutfi Hakim", Email: "lutfi.hakim@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567837"), Address: "Jl. Merdeka No. 37, Kediri", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Maulana Yusuf", Email: "maulana.yusuf@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567838"), Address: "Jl. Ahmad Dahlan No. 38, Madiun", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Naufal Akmal", Email: "naufal.akmal@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567839"), Address: "Jl. Pattimura No. 39, Tegal", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Oscar Fernando", Email: "oscar.fernando@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567840"), Address: "Jl. Sultan Agung No. 40, Cilacap", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Prasetyo Hadi", Email: "prasetyo.hadi@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567841"), Address: "Jl. Imam Bonjol No. 41, Sukabumi", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Rama Saputra", Email: "rama.saputra@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567842"), Address: "Jl. Sisingamangaraja No. 42, Cianjur", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Sandi Firmansyah", Email: "sandi.firmansyah@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567843"), Address: "Jl. Hasanuddin No. 43, Karawang", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Tri Wahyudi", Email: "tri.wahyudi@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567844"), Address: "Jl. Gatot Subroto No. 44, Purwakarta", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Ujang Setiawan", Email: "ujang.setiawan@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567845"), Address: "Jl. Otto Iskandardinata No. 45, Subang", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Victor Gunawan", Email: "victor.gunawan@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567846"), Address: "Jl. Veteran No. 46, Indramayu", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Wisnu Pratama", Email: "wisnu.pratama@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567847"), Address: "Jl. Proklamasi No. 47, Majalengka", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Yoga Prasetyo", Email: "yoga.prasetyo@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567848"), Address: "Jl. Asia Afrika No. 48, Banjar", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Zulfikar Ali", Email: "zulfikar.ali@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567849"), Address: "Jl. Veteran No. 49, Bontang", CreateBy: adminID, UpdateBy: adminID},
+		{ID: utils.GetUniqueID(), CompanyID: companyID, Name: "Arif Rahman", Email: "arif.rahman@example.com", PhoneNumber: utils.FormatPhoneTo62("081234567850"), Address: "Jl. Merdeka No. 50, Binjai", CreateBy: adminID, UpdateBy: adminID},
+	}
+	tx.Create(&customers)
+
 	events := []model.Event{}
 	orders := []model.Order{}
 	orderevents := []model.Orderevent{}
@@ -908,10 +986,11 @@ func dbSeed() {
 			}
 
 			order := model.Order{
-				ID:        orderID,
-				CompanyID: companyID,
-				CreateBy:  adminID,
-				UpdateBy:  adminID,
+				ID:         orderID,
+				CustomerID: customers[utils.GetRandomNumber(0, len(customers)-1)].ID,
+				CompanyID:  companyID,
+				CreateBy:   adminID,
+				UpdateBy:   adminID,
 			}
 			orders = append(orders, order)
 

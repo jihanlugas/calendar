@@ -16,6 +16,7 @@ const (
 	VIEW_PRODUCT              = "products_view"
 	VIEW_TAX                  = "taxes_view"
 	VIEW_DISCOUNT             = "discounts_view"
+	VIEW_CUSTOMER             = "customers_view"
 	VIEW_ORDER                = "orders_view"
 	VIEW_ORDEREVENT           = "orderevents_view"
 	VIEW_ORDERPRODUCT         = "orderproducts_view"

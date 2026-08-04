@@ -8,6 +8,7 @@ import (
 	"github.com/jihanlugas/calendar/app/base"
 	"github.com/jihanlugas/calendar/app/company"
 	"github.com/jihanlugas/calendar/app/companypaymentmethod"
+	"github.com/jihanlugas/calendar/app/customer"
 	"github.com/jihanlugas/calendar/app/event"
 	"github.com/jihanlugas/calendar/app/listener"
 	"github.com/jihanlugas/calendar/app/order"
@@ -59,6 +60,7 @@ func Init() *echo.Echo {
 	orderRepository := order.NewRepository()
 	ordereventRepository := orderevent.NewRepository()
 	orderpaymentRepository := orderpayment.NewRepository()
+	customerRepository := customer.NewRepository()
 
 	// usecases
 	baseUsecase := base.NewUsecase()
@@ -70,9 +72,10 @@ func Init() *echo.Echo {
 	productUsecase := product.NewUsecase(baseUsecase, productRepository)
 	propertyUsecase := property.NewUsecase(baseUsecase, propertyRepository, propertytimelineRepository, unitRepository, propertypriceRepository)
 	unitUsecase := unit.NewUsecase(baseUsecase, unitRepository)
-	eventUsecase := event.NewUsecase(baseUsecase, eventRepository, orderRepository, ordereventRepository)
+	eventUsecase := event.NewUsecase(baseUsecase, eventRepository, orderRepository, ordereventRepository, customerRepository)
 	propertypriceUsecase := propertyprice.NewUsecase(baseUsecase, propertypriceRepository)
 	orderpaymentUsecase := orderpayment.NewUsecase(baseUsecase, orderpaymentRepository, companypaymentmethodRepository)
+	customerUsecase := customer.NewUsecase(baseUsecase, customerRepository)
 
 	// handlers
 	authHandler := auth.NewHandler(authUsecase)
@@ -87,6 +90,7 @@ func Init() *echo.Echo {
 	websocketHandler := websocket.NewHandler(hubManager)
 	propertypriceHandler := propertyprice.NewHandler(propertypriceUsecase)
 	orderpaymentHandler := orderpayment.NewHandler(orderpaymentUsecase)
+	customerHandler := customer.NewHandler(customerUsecase)
 
 	if config.Debug {
 		router.GET("/", func(c echo.Context) error {
@@ -136,6 +140,13 @@ func Init() *echo.Echo {
 	routerPropertyprice.POST("", propertypriceHandler.Create)
 	routerPropertyprice.PUT("/:id", propertypriceHandler.Update)
 	routerPropertyprice.DELETE("/:id", propertypriceHandler.Delete)
+
+	routerCustomer := router.Group("/customer", checkTokenMiddleware)
+	routerCustomer.GET("", customerHandler.Page)
+	routerCustomer.POST("", customerHandler.Create)
+	routerCustomer.PUT("/:id", customerHandler.Update)
+	routerCustomer.GET("/:id", customerHandler.GetById)
+	routerCustomer.DELETE("/:id", customerHandler.Delete)
 
 	routerProduct := router.Group("/product", checkTokenMiddleware)
 	routerProduct.GET("", productHandler.Page)

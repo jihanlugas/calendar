@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/jihanlugas/calendar/app/base"
+	"github.com/jihanlugas/calendar/app/customer"
 	"github.com/jihanlugas/calendar/app/order"
 	"github.com/jihanlugas/calendar/app/orderevent"
 	"github.com/jihanlugas/calendar/constant"
@@ -29,6 +30,7 @@ type usecase struct {
 	repository           Repository
 	repositoryOrder      order.Repository
 	repositoryOrderevent orderevent.Repository
+	repositoryCustomer   customer.Repository
 }
 
 func (u usecase) Timeline(loginUser jwt.UserLogin, req request.TimelineEvent) (vEvents []model.EventView, err error) {
@@ -94,6 +96,31 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 	orderID := utils.GetUniqueID()
 	ordereventID := utils.GetUniqueID()
 
+	tCustomer := model.Customer{}
+	if req.CustomerID != "" {
+		tCustomer, err = u.repositoryCustomer.GetTableById(tx, req.CustomerID)
+		if err != nil {
+			return fmt.Errorf("customer not found: %v", err)
+		}
+		if tCustomer.CompanyID != req.CompanyID {
+			return errors.New("customer not found")
+		}
+	} else {
+		tCustomer = model.Customer{
+			ID:          utils.GetUniqueID(),
+			CompanyID:   req.CompanyID,
+			Name:        req.CustomerName,
+			Email:       "",
+			PhoneNumber: utils.FormatPhoneTo62(req.CustomerPhoneNumber),
+			CreateBy:    loginUser.UserID,
+			UpdateBy:    loginUser.UserID,
+		}
+		err = u.repositoryCustomer.Create(tx, tCustomer)
+		if err != nil {
+			return fmt.Errorf("failed to create %s: %v", u.repositoryCustomer.Name(), err)
+		}
+	}
+
 	tEvent := model.Event{
 		ID:           eventID,
 		CompanyID:    req.CompanyID,
@@ -101,8 +128,8 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 		UnitID:       req.UnitID,
 		OrderID:      orderID,
 		OrdereventID: ordereventID,
-		Name:         req.Name,
-		Description:  req.Description,
+		Name:         "",
+		Description:  "",
 		StartDt:      req.StartDt,
 		EndDt:        req.EndDt,
 		Status:       req.Status,
@@ -111,10 +138,11 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 	}
 
 	tOrder := model.Order{
-		ID:        orderID,
-		CompanyID: req.CompanyID,
-		CreateBy:  loginUser.UserID,
-		UpdateBy:  loginUser.UserID,
+		ID:         orderID,
+		CompanyID:  req.CompanyID,
+		CustomerID: req.CustomerID,
+		CreateBy:   loginUser.UserID,
+		UpdateBy:   loginUser.UserID,
 	}
 
 	tOrderevent := model.Orderevent{
@@ -251,11 +279,12 @@ func (u usecase) Confirm(loginUser jwt.UserLogin, id string) error {
 	return err
 }
 
-func NewUsecase(baseUsecase base.Usecase, repository Repository, repositoryOrder order.Repository, repositoryOrderevent orderevent.Repository) Usecase {
+func NewUsecase(baseUsecase base.Usecase, repository Repository, repositoryOrder order.Repository, repositoryOrderevent orderevent.Repository, repositoryCustomer customer.Repository) Usecase {
 	return &usecase{
 		baseUsecase:          baseUsecase,
 		repository:           repository,
 		repositoryOrder:      repositoryOrder,
 		repositoryOrderevent: repositoryOrderevent,
+		repositoryCustomer:   repositoryCustomer,
 	}
 }

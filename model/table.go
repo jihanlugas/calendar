@@ -228,14 +228,29 @@ type Discount struct {
 	DeleteDt    gorm.DeletedAt        `gorm:"null"`
 }
 
+type Customer struct {
+	ID          string         `gorm:"primaryKey"`
+	CompanyID   string         `gorm:"not null"`
+	Name        string         `gorm:"not null"`
+	Email       string         `gorm:"not null"`
+	PhoneNumber string         `gorm:"not null"`
+	Address     string         `gorm:"not null"`
+	CreateBy    string         `gorm:"not null"`
+	CreateDt    time.Time      `gorm:"not null"`
+	UpdateBy    string         `gorm:"not null"`
+	UpdateDt    time.Time      `gorm:"not null"`
+	DeleteDt    gorm.DeletedAt `gorm:"null"`
+}
+
 type Order struct {
-	ID        string         `gorm:"primaryKey"`
-	CompanyID string         `gorm:"not null"`
-	CreateBy  string         `gorm:"not null"`
-	CreateDt  time.Time      `gorm:"not null"`
-	UpdateBy  string         `gorm:"not null"`
-	UpdateDt  time.Time      `gorm:"not null"`
-	DeleteDt  gorm.DeletedAt `gorm:"null"`
+	ID         string         `gorm:"primaryKey"`
+	CompanyID  string         `gorm:"not null"`
+	CustomerID string         `gorm:"not null"`
+	CreateBy   string         `gorm:"not null"`
+	CreateDt   time.Time      `gorm:"not null"`
+	UpdateBy   string         `gorm:"not null"`
+	UpdateDt   time.Time      `gorm:"not null"`
+	DeleteDt   gorm.DeletedAt `gorm:"null"`
 }
 
 type Orderevent struct {

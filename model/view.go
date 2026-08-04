@@ -341,16 +341,13 @@ func (DiscountView) TableName() string {
 	return VIEW_DISCOUNT
 }
 
-type OrderView struct {
+type CustomerView struct {
 	ID          string         `json:"id"`
 	CompanyID   string         `json:"companyId"`
-	Tax         int64          `json:"tax"`
-	Discount    int64          `json:"discount"`
-	Rounding    int64          `json:"rounding"`
-	Subtotal    int64          `json:"subtotal"`
-	Total       int64          `json:"total"`
-	Payment     int64          `json:"payment"`
-	Outstanding int64          `json:"outstanding"`
+	Name        string         `json:"name"`
+	Email       string         `json:"email"`
+	PhoneNumber string         `json:"phoneNumber"`
+	Address     string         `json:"address"`
 	CreateBy    string         `json:"createBy"`
 	CreateDt    time.Time      `json:"createDt"`
 	UpdateBy    string         `json:"updateBy"`
@@ -360,7 +357,36 @@ type OrderView struct {
 	CreateName  string         `json:"createName"`
 	UpdateName  string         `json:"updateName"`
 
+	Company *CompanyView `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+}
+
+func (CustomerView) TableName() string {
+	return VIEW_CUSTOMER
+}
+
+type OrderView struct {
+	ID           string         `json:"id"`
+	CompanyID    string         `json:"companyId"`
+	CustomerID   string         `json:"customerId"`
+	Tax          int64          `json:"tax"`
+	Discount     int64          `json:"discount"`
+	Rounding     int64          `json:"rounding"`
+	Subtotal     int64          `json:"subtotal"`
+	Total        int64          `json:"total"`
+	Payment      int64          `json:"payment"`
+	Outstanding  int64          `json:"outstanding"`
+	CreateBy     string         `json:"createBy"`
+	CreateDt     time.Time      `json:"createDt"`
+	UpdateBy     string         `json:"updateBy"`
+	UpdateDt     time.Time      `json:"updateDt"`
+	DeleteDt     gorm.DeletedAt `json:"deleteDt"`
+	CompanyName  string         `json:"companyName"`
+	CustomerName string         `json:"customerName"`
+	CreateName   string         `json:"createName"`
+	UpdateName   string         `json:"updateName"`
+
 	Company        *CompanyView        `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Customer       *CustomerView       `json:"customer,omitempty" gorm:"foreignKey:CustomerID"`
 	Orderevents    []OrdereventView    `json:"orderevents,omitempty" gorm:"foreignKey:OrderID"`
 	Orderproducts  []OrderproductView  `json:"orderproducts,omitempty" gorm:"foreignKey:OrderID"`
 	Ordertaxes     []OrdertaxView      `json:"ordertaxes,omitempty" gorm:"foreignKey:OrderID"`

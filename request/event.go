@@ -30,15 +30,16 @@ type TimelineEvent struct {
 }
 
 type CreateEvent struct {
-	CompanyID   string               `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
-	PropertyID  string               `json:"propertyId" form:"propertyId" query:"propertyId" validate:"required"`
-	UnitID      string               `json:"unitId" form:"unitId" query:"unitId" validate:"required"`
-	Name        string               `json:"name" form:"name" query:"name" validate:"required"`
-	Description string               `json:"description" form:"description" query:"description" validate:""`
-	StartDt     time.Time            `json:"startDt" form:"startDt" query:"startDt" validate:"required"`
-	EndDt       time.Time            `json:"endDt" form:"endDt" query:"endDt" validate:"required"`
-	Status      constant.EventStatus `json:"status" form:"status" query:"status" validate:"required"`
-	Price       int64                `json:"price" form:"price" query:"price" validate:""`
+	CompanyID           string               `json:"companyId" form:"companyId" query:"companyId" validate:"required"`
+	PropertyID          string               `json:"propertyId" form:"propertyId" query:"propertyId" validate:"required"`
+	UnitID              string               `json:"unitId" form:"unitId" query:"unitId" validate:"required"`
+	CustomerID          string               `json:"customerId" validate:"required_without=CustomerName"`
+	CustomerName        string               `json:"customerName" validate:"required_without=CustomerID"`
+	CustomerPhoneNumber string               `json:"customerPhoneNumber" form:"customerPhoneNumber" query:"customerPhoneNumber" validate:""`
+	StartDt             time.Time            `json:"startDt" form:"startDt" query:"startDt" validate:"required"`
+	EndDt               time.Time            `json:"endDt" form:"endDt" query:"endDt" validate:"required"`
+	Status              constant.EventStatus `json:"status" form:"status" query:"status" validate:"required"`
+	Price               int64                `json:"price" form:"price" query:"price" validate:""`
 }
 
 type UpdateEvent struct {

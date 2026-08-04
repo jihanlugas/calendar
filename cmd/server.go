@@ -17,9 +17,9 @@ func runServer() {
 
 	r := router.Init()
 
-	if err != nil {
-		r.Logger.Fatal(err)
-	}
+	// if err != nil {
+	// 	r.Logger.Fatal(err)
+	// }
 
 	// Start server
 	go func() {
