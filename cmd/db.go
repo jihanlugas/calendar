@@ -641,8 +641,8 @@ func dbSeed() {
 	adminID := utils.GetUniqueID()
 	userID := "f7416f17-884b-46d3-b7db-b90be60a71c5"
 	companyID := "fcc18dfc-b0ef-42ef-8036-28503492a2a1"
-	property1ID := "db979b45-30e5-4e70-9eec-0cea0089ae12"
-	property2ID := "cd94a84e-33bc-43b0-9da0-52a5b6239ed9"
+	propertyBadmintonID := "db979b45-30e5-4e70-9eec-0cea0089ae12"
+	propertyFutsalID := "cd94a84e-33bc-43b0-9da0-52a5b6239ed9"
 
 	paymentmethodCashID := utils.GetUniqueID()
 	paymentmethodQRISID := utils.GetUniqueID()
@@ -764,7 +764,7 @@ func dbSeed() {
 	closeTime, _ := time.Parse(constant.FormatTimeLayout, "16:00") // jam 23 WIB
 	properties := []model.Property{
 		{
-			ID:          property1ID,
+			ID:          propertyBadmintonID,
 			Name:        "Badminton",
 			Description: "Demo Property Generated",
 			CompanyID:   companyID,
@@ -774,7 +774,7 @@ func dbSeed() {
 			UpdateBy:    adminID,
 		},
 		{
-			ID:          property2ID,
+			ID:          propertyFutsalID,
 			Name:        "Futsal",
 			Description: "Demo Property Generated",
 			CompanyID:   companyID,
@@ -788,7 +788,7 @@ func dbSeed() {
 
 	propertytimelines := []model.Propertytimeline{
 		{
-			ID:                  property1ID,
+			ID:                  propertyBadmintonID,
 			MinZoomTimelineHour: 6,
 			MaxZoomTimelineHour: 7 * 24, // 7 Hari
 			DragSnapMin:         30,     // 30 Minutes
@@ -796,7 +796,7 @@ func dbSeed() {
 			UpdateBy:            adminID,
 		},
 		{
-			ID:                  property2ID,
+			ID:                  propertyFutsalID,
 			MinZoomTimelineHour: 6,
 			MaxZoomTimelineHour: 7 * 24, // 7 Hari
 			DragSnapMin:         30,     // 30 Minutes
@@ -812,45 +812,45 @@ func dbSeed() {
 	propertyprices := []model.Propertyprice{
 		{
 			CompanyID:  companyID,
-			PropertyID: property1ID,
+			PropertyID: propertyBadmintonID,
 			Priority:   1,
 			Weekdays:   model.Int32Array{0, 1, 2, 3, 4, 5, 6},
 			StartTime:  nil,
 			EndTime:    nil,
-			Price:      10,
+			Price:      50000,
 			CreateBy:   adminID,
 			UpdateBy:   adminID,
 		},
 		{
 			CompanyID:  companyID,
-			PropertyID: property1ID,
+			PropertyID: propertyBadmintonID,
 			Priority:   2,
 			Weekdays:   model.Int32Array{0, 6},
 			StartTime:  &startTime,
 			EndTime:    &endTime,
-			Price:      100,
+			Price:      70000,
 			CreateBy:   adminID,
 			UpdateBy:   adminID,
 		},
 		{
 			CompanyID:  companyID,
-			PropertyID: property2ID,
+			PropertyID: propertyFutsalID,
 			Priority:   1,
 			Weekdays:   model.Int32Array{0, 1, 2, 3, 4, 5, 6},
 			StartTime:  nil,
 			EndTime:    nil,
-			Price:      1000,
+			Price:      100000,
 			CreateBy:   adminID,
 			UpdateBy:   adminID,
 		},
 		{
 			CompanyID:  companyID,
-			PropertyID: property2ID,
+			PropertyID: propertyFutsalID,
 			Priority:   2,
 			Weekdays:   model.Int32Array{0, 6},
 			StartTime:  &startTime,
 			EndTime:    &endTime,
-			Price:      10000,
+			Price:      120000,
 			CreateBy:   adminID,
 			UpdateBy:   adminID,
 		},
