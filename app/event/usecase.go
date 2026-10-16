@@ -140,7 +140,7 @@ func (u usecase) Create(loginUser jwt.UserLogin, req request.CreateEvent) error 
 	tOrder := model.Order{
 		ID:         orderID,
 		CompanyID:  req.CompanyID,
-		CustomerID: req.CustomerID,
+		CustomerID: tCustomer.ID,
 		CreateBy:   loginUser.UserID,
 		UpdateBy:   loginUser.UserID,
 	}
