@@ -104,6 +104,10 @@ func Init() *echo.Echo {
 	routerAuth.POST("/sign-out", authHandler.SignOut)
 	routerAuth.GET("/init", authHandler.Init, checkTokenMiddleware)
 	routerAuth.GET("/refresh-token", authHandler.RefreshToken, checkTokenMiddleware)
+	routerAuth.GET("/google/login", authHandler.GoogleSignIn)
+	routerAuth.GET("/google/link", authHandler.GoogleLink, checkTokenMiddlewareQuery)
+	routerAuth.GET("/google/callback", authHandler.GoogleCallback)
+	routerAuth.GET("/google/unlink", authHandler.GoogleUnlink, checkTokenMiddleware)
 
 	routerPhoto := router.Group("/photo")
 	routerPhoto.GET("/:id", photoHandler.GetById)
@@ -240,6 +244,34 @@ func checkTokenMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		if user.PassVersion != userLogin.PassVersion {
+			return response.ErrorForce(http.StatusUnauthorized, response.ErrorMiddlewarePassVersion).SendJSON(c)
+		}
+
+		c.Set(constant.TokenUserContext, userLogin)
+		return next(c)
+	}
+}
+
+func checkTokenMiddlewareQuery(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var err error
+
+		token := c.QueryParam("token")
+
+		userLogin, err := jwt.ExtractClaims(token)
+		if err != nil {
+			return response.ErrorForce(http.StatusUnauthorized, err.Error()).SendJSON(c)
+		}
+
+		conn := db.GetPostgresConnection()
+
+		var tUser model.User
+		err = conn.Where("id = ? ", userLogin.UserID).First(&tUser).Error
+		if err != nil {
+			return response.ErrorForce(http.StatusUnauthorized, response.ErrorMiddlewareUserNotFound).SendJSON(c)
+		}
+
+		if tUser.PassVersion != userLogin.PassVersion {
 			return response.ErrorForce(http.StatusUnauthorized, response.ErrorMiddlewarePassVersion).SendJSON(c)
 		}
 

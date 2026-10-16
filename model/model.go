@@ -5,6 +5,7 @@ import "time"
 const (
 	VIEW_PAYMENTMETHOD        = "paymentmethods_view"
 	VIEW_USER                 = "users_view"
+	VIEW_USERPROVIDER         = "userproviders_view"
 	VIEW_COMPANY              = "companies_view"
 	VIEW_COMPANYPAYMENTMETHOD = "companypaymentmethods_view"
 	VIEW_USERCOMPANY          = "usercompanies_view"

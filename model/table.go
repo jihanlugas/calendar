@@ -61,6 +61,24 @@ type User struct {
 	UpdateBy          string         `gorm:"not null"`
 	UpdateDt          time.Time      `gorm:"not null"`
 	DeleteDt          gorm.DeletedAt `gorm:"null"`
+
+	Userproviders []Userprovider `gorm:"not null"`
+}
+
+type Userprovider struct {
+	ID             string         `gorm:"primaryKey"`
+	UserID         string         `gorm:"not null"`
+	ProviderName   string         `gorm:"not null"`
+	ProviderUserID string         `gorm:"not null"`
+	Email          string         `gorm:"not null"`
+	Fullname       string         `gorm:"not null"`
+	CreateBy       string         `gorm:"not null"`
+	CreateDt       time.Time      `gorm:"not null"`
+	UpdateBy       string         `gorm:"not null"`
+	UpdateDt       time.Time      `gorm:"not null"`
+	DeleteDt       gorm.DeletedAt `gorm:"null"`
+
+	User *User `gorm:"not null"`
 }
 
 type Company struct {

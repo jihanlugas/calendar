@@ -25,6 +25,11 @@ type server struct {
 	BaseUrl string
 }
 
+type oauth2 struct {
+	ClientID     string
+	ClientSecret string
+}
+
 var (
 	Debug                        bool
 	Server                       server
@@ -41,6 +46,9 @@ var (
 	PhotoUploadAllowedExtensions []string
 
 	WsAllowedOrigins []string
+
+	OauthFeCallback string
+	GoogleOauth     oauth2
 )
 
 func init() {
@@ -118,6 +126,13 @@ func init() {
 		WsAllowedOrigins = []string{}
 	} else {
 		WsAllowedOrigins = strings.Split(wsAllowedOrigins, ",")
+	}
+
+	OauthFeCallback = os.Getenv("OAUTH_FE_CALLBACK_URL")
+
+	GoogleOauth = oauth2{
+		ClientID:     os.Getenv("OAUTH_GOOGLE_CLIENT_ID"),
+		ClientSecret: os.Getenv("OAUTH_GOOGLE_CLIENT_SECRET"),
 	}
 
 }

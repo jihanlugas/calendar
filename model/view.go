@@ -50,12 +50,35 @@ type UserView struct {
 	CreateName        string         `json:"createName"`
 	UpdateName        string         `json:"updateName"`
 
-	Company       *CompanyView      `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
-	Usercompanies []UsercompanyView `json:"usercompanies,omitempty" gorm:"foreignKey:UserID"`
+	Company       *CompanyView       `json:"company,omitempty" gorm:"foreignKey:CompanyID"`
+	Usercompanies []UsercompanyView  `json:"usercompanies,omitempty" gorm:"foreignKey:UserID"`
+	Userproviders []UserproviderView `json:"userproviders,omitempty" gorm:"foreignKey:UserID"`
 }
 
 func (UserView) TableName() string {
 	return VIEW_USER
+}
+
+type UserproviderView struct {
+	ID             string         `json:"id"`
+	UserID         string         `json:"userId"`
+	ProviderName   string         `json:"providerName"`
+	ProviderUserID string         `json:"providerUserId"`
+	Email          string         `json:"email"`
+	Fullname       string         `json:"fullname"`
+	CreateBy       string         `json:"createBy"`
+	CreateDt       time.Time      `json:"createDt"`
+	UpdateBy       string         `json:"updateBy"`
+	UpdateDt       time.Time      `json:"updateDt"`
+	DeleteDt       gorm.DeletedAt `json:"deleteDt"`
+	CreateName     string         `json:"createName"`
+	UpdateName     string         `json:"updateName"`
+
+	User *UserView `json:"user,omitempty"`
+}
+
+func (UserproviderView) TableName() string {
+	return VIEW_USERPROVIDER
 }
 
 type CompanyView struct {

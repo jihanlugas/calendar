@@ -15,4 +15,5 @@ const (
 	RoleUseradmin        = "USERADMIN"
 	RoleUser             = "USER"
 	AuthHeaderKey        = "Authorization"
+	OauthProviderGoogle  = "google"
 )
